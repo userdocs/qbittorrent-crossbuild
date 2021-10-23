@@ -114,8 +114,8 @@ jobs:
 
       - name: Docker target - cmake and ninja download and install
         run: |
-          docker exec multiarch curl -sNL "https://github.com/userdocs/cmake_crossbuild/releases/latest/download/${{ matrix.os_id }}-${{ matrix.os_version_id }}-cmake-ninja-${{ matrix.arch }}.deb" -o ${{ matrix.os_id }}-${{ matrix.os_version_id }}-cmake-ninja-${{ matrix.arch }}.deb
-          docker exec multiarch dpkg -i ${{ matrix.os_id }}-${{ matrix.os_version_id }}-cmake-ninja-${{ matrix.arch }}.deb
+          docker exec multiarch curl -sNL "https://github.com/userdocs/cmake_crossbuild/releases/latest/download/${{ matrix.os_id }}-${{ matrix.os_version_id }}-cmake-swizzin-${{ matrix.arch }}.deb" -o ${{ matrix.os_id }}-${{ matrix.os_version_id }}-cmake-swizzin-${{ matrix.arch }}.deb
+          docker exec multiarch dpkg -i ${{ matrix.os_id }}-${{ matrix.os_version_id }}-cmake-swizzin-${{ matrix.arch }}.deb
 
       - name: Docker target - Bootstrap the boost files
         run: |
@@ -156,11 +156,12 @@ jobs:
       - name: Docker target - qt6 set the download urls
         run: |
           echo "qt6_qtbase_url=https://download.qt.io/official_releases/qt/${{ env.qt6_short_version }}/${{ env.qt6_version }}/submodules/qtbase-everywhere-src-${{ env.qt6_version }}.tar.xz" >> $GITHUB_ENV
+          echo "qt6_qtsvg_url=https://download.qt.io/official_releases/qt/${{ env.qt6_short_version }}/${{ env.qt6_version }}/submodules/qtsvg-everywhere-src-${{ env.qt6_version }}.tar.xz" >> $GITHUB_ENV
           echo "qt6_qttools_url=https://download.qt.io/official_releases/qt/${{ env.qt6_short_version }}/${{ env.qt6_version }}/submodules/qttools-everywhere-src-${{ env.qt6_version }}.tar.xz" >> $GITHUB_ENV
 
       - name: qt qtbase - curl
         run: |
-          docker exec multiarch curl -sNL https://download.qt.io/official_releases/qt/${{ env.qt6_short_version }}/${{ env.qt6_version }}/submodules/qtbase-everywhere-src-${{ env.qt6_version }}.tar.xz -o qtbase.tar.xz
+          docker exec multiarch curl -sNL ${{ env.qt6_qtbase_url }} -o qtbase.tar.xz
           docker exec multiarch tar xf qtbase.tar.xz
 
       - name: Docker target - qt qtbase - cmake configure
@@ -182,7 +183,7 @@ jobs:
 
       - name: Docker target - qt qtsvg - curl
         run: |
-          docker exec multiarch curl -sNL https://download.qt.io/official_releases/qt/${{ env.qt6_short_version }}/${{ env.qt6_version }}/submodules/qtsvg-everywhere-src-${{ env.qt6_version }}.tar.xz -o qtsvg.tar.xz
+          docker exec multiarch curl -sNL ${{ env.qt6_qtsvg_url }} -o qtsvg.tar.xz
           docker exec multiarch tar xf qtsvg.tar.xz
 
       - name: Docker target - qt qtsvg - cmake configure
@@ -201,7 +202,7 @@ jobs:
 
       - name: Docker target - qt qttools - curl
         run: |
-          docker exec multiarch curl -sNL https://download.qt.io/official_releases/qt/${{ env.qt6_short_version }}/${{ env.qt6_version }}/submodules/qttools-everywhere-src-${{ env.qt6_version }}.tar.xz -o qttools.tar.xz
+          docker exec multiarch curl -sNL ${{ env.qt6_qttools_url }} -o qttools.tar.xz
           docker exec multiarch tar xf qttools.tar.xz
 
       - name: Docker target - qt qttools - cmake configure
