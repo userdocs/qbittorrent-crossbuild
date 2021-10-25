@@ -9,7 +9,7 @@ jobs:
       matrix:
         name: [qbittorrent, qbittorrent-nox]
         os_id: [debian, ubuntu]
-        os_version_id: [stretch, bionic]
+        os_version_id: [buster, bionic]
         arch: [amd64]
         desktop_gui: ["", -D GUI=OFF]
         qt_features:
