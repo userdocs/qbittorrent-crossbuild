@@ -9,8 +9,8 @@ jobs:
       matrix:
         name: [qbittorrent, qbittorrent-nox]
         os_id: [debian, ubuntu]
-        os_version_id: [stretch, bionic]
-        arch: [amd64]
+        os_version_id: [stretch, buster, bullseye, bionic, focal, hirsute]
+        arch: [amd64, armhf, arm64]
         desktop_gui: ["", -D GUI=OFF]
         qt_features:
           [
@@ -19,9 +19,17 @@ jobs:
           ]
         include:
           - arch: amd64
-            CHOST: "x86_64-pc-linux-gnu"
+            CHOST: "x86_64-linux-gnu"
             docker_arch: amd64
             docker_platform: linux/amd64
+          - arch: armhf
+            CHOST: "arm-linux-gnueabihf"
+            docker_arch: arm32v7
+            docker_platform: linux/arm/v7
+          - arch: arm64
+            CHOST: "aarch64-linux-gnu"
+            docker_arch: arm64v8
+            docker_platform: linux/arm64/v8
         exclude:
           - os_id: debian
             os_version_id: bionic
@@ -63,7 +71,7 @@ jobs:
         run: sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
 
       - name: Host - Create docker multiarch ${{ matrix.arch }} container
-        run: docker run --name multiarch -it -d -w /root PKG_CONFIG_PATH="/opt/gcc/lib/pkgconfig" -e LD_LIBRARY_PATH='/opt/gcc/lib' -e CXXFLAGS="-I/opt/gcc/include" -e CPPFLAGS="-I/opt/gcc/include" -e LDFLAGS="-L/opt/gcc/lib" -e 'PATH=/opt/gcc/bin:/opt/cmake/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin' -e 'LANG=en_US.UTF-8' -e 'DEBIAN_FRONTEND=noninteractive' -e CHOST=${{ env.CHOST }} -e CC=${{ env.CC }} -e AR=${{ env.AR }} -e CXX=${{ env.CXX }} -v ${{ github.workspace }}:/root ${{ matrix.os_id }}:${{ matrix.os_version_id }}
+        run: docker run --name multiarch -it -d -w /root -e 'PATH=/opt/cmake/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin' -e 'LANG=en_US.UTF-8' -e 'DEBIAN_FRONTEND=noninteractive' -e CHOST=${{ env.CHOST }} -e CC=${{ env.CC }} -e AR=${{ env.AR }} -e CXX=${{ env.CXX }} -v ${{ github.workspace }}:/root ${{ matrix.os_id }}:${{ matrix.os_version_id }}
 
       - name: Host - Create docker binary test ${{ matrix.arch }} container
         run: docker run --name bintest -it -d -w /root -e 'LD_LIBRARY_PATH=/usr/local/lib:/usr/lib' -e 'LANG=en_US.UTF-8' -e 'DEBIAN_FRONTEND=noninteractive' --platform ${{ matrix.docker_platform }} -v ${{ github.workspace }}:/root ${{ matrix.docker_arch }}/${{ matrix.os_id }}:${{ matrix.os_version_id }}
@@ -111,11 +119,6 @@ jobs:
           docker exec multiarch apt-get install -y libglu1-mesa-dev:${{ matrix.arch }} libfontconfig1-dev:${{ matrix.arch }} libfreetype6-dev:${{ matrix.arch }} libx11-dev:${{ matrix.arch }} libx11-xcb-dev:${{ matrix.arch }}
           docker exec multiarch apt-get install -y libxfixes-dev:${{ matrix.arch }} libxi-dev:${{ matrix.arch }} libxrender-dev:${{ matrix.arch }} libxkbcommon-dev:${{ matrix.arch }} libxkbcommon-x11-dev:${{ matrix.arch }}
           docker exec multiarch apt-get install -y libxcb.*-dev:${{ matrix.arch }} libxkbcommon-dev:${{ matrix.arch }} libxkbcommon-x11-dev:${{ matrix.arch }} libxext-dev:${{ matrix.arch }} libicu-dev:${{ matrix.arch }} xmlstarlet:${{ matrix.arch }}
-
-      - name: Docker target - gcc download and install
-        run: |
-          docker exec multiarch curl -sNL "https://github.com/userdocs/gcc_crossbuild/releases/latest/download/${{ matrix.os_id }}-${{ matrix.os_version_id }}-gcc-${{ matrix.arch }}.deb" -o ${{ matrix.os_id }}-${{ matrix.os_version_id }}-gcc-${{ matrix.arch }}.deb
-          docker exec multiarch dpkg -i ${{ matrix.os_id }}-${{ matrix.os_version_id }}-gcc-${{ matrix.arch }}.deb
 
       - name: Docker target - cmake and ninja download and install
         run: |
