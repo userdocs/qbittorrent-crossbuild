@@ -190,7 +190,7 @@ jobs:
         run: |
           docker exec -w /root/qtbase-everywhere-src-${{ env.qt6_version }} multiarch cmake -Wno-dev -Wno-deprecated -G Ninja -B build \
           -D QT_FEATURE_optimize_full=on \
-           ${{ matrix.qt_features }} -D QT_FEATURE_openssl_linked=on -D QT_FEATURE_system_pcre2=off \
+           ${{ matrix.qt_features }} -D QT_FEATURE_openssl_linked=on -D QT_FEATURE_system_pcre2=off QT_FEATURE_system_harfbuzz=off \
           -D QT_FEATURE_testlib=off -D QT_BUILD_EXAMPLES=off -D QT_BUILD_TESTS=off \
           -D CMAKE_BUILD_TYPE="release" \
           -D CMAKE_CXX_STANDARD="17" \
