@@ -93,6 +93,7 @@ jobs:
           docker exec -w /etc/apt/ multiarch  bash -c 'echo "deb [arch=amd64] http://security.ubuntu.com/ubuntu/ ${{ matrix.os_version_id }}-security main restricted universe multiverse" >> sources.list'
 
       - name: Docker target - dpkg configure arch
+        if: matrix.arch != 'amd64'
         run: docker exec multiarch dpkg --add-architecture ${{ matrix.arch }}
 
       - name: Docker target - Run apt-get update
@@ -111,19 +112,23 @@ jobs:
           docker exec bintest apt-get install -y openssl
 
       - name: Docker target - apt-get install crossbuild-essential
-        if: matrix.arch != 'amd64'
+
         run: docker exec multiarch apt-get install -y crossbuild-essential-${{ matrix.arch }}
 
       - name: Docker target - apt-get install cross target deps
         run: docker exec multiarch apt-get install -y zlib1g-dev:${{ matrix.arch }} libssl-dev:${{ matrix.arch }} libgeoip-dev:${{ matrix.arch }} libstdc++-*-dev:${{ matrix.arch }}
 
       - name: Docker target - bionic - apt-get install gcc-8-base g++-8
-        if: matrix.os_version_id == 'bionic'
+        if: matrix.os_version_id == 'bionic' && matrix.arch == 'amd64'
         run: |
           docker exec multiarch apt-get install -y gcc-8-base g++-8
-          docker exec multiarch apt-get install -y cpp-8-${{ matrix.CHOST }} g++-8-${{ matrix.CHOST }} gcc-8-${{ matrix.CHOST }}
           docker exec multiarch update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 10
           docker exec multiarch update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 10
+
+      - name: Docker target - bionic - apt-get install gcc-8-base g++-8
+        if: matrix.os_version_id == 'bionic' && matrix.arch != 'amd64'
+        run: |
+          docker exec multiarch apt-get install -y cpp-8-${{ matrix.CHOST }} g++-8-${{ matrix.CHOST }} gcc-8-${{ matrix.CHOST }}
           docker exec multiarch update-alternatives --install /usr/bin/${{ matrix.CHOST }}-gcc ${{ matrix.CHOST }}-gcc /usr/bin/${{ matrix.CHOST }}-gcc-8 10
           docker exec multiarch update-alternatives --install /usr/bin/${{ matrix.CHOST }}-g++ ${{ matrix.CHOST }}-g++ /usr/bin/${{ matrix.CHOST }}-g++-8 10
 
