@@ -62,6 +62,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2.3.4
 
+      - name: Host - update
+        run: sudo apt-get update
+
+      - name: Host - upgrade
+        run: sudo apt-get -y upgrade
+
       - name: Host - Install host qemu-static
         run: sudo apt-get install -y qemu binfmt-support qemu-user-static
 
@@ -104,17 +110,17 @@ jobs:
           docker exec multiarch apt-get install -y build-essential curl pkg-config automake libtool git perl python3 python3-dev unzip
           docker exec bintest apt-get install -y openssl
 
-      - name: Docker target - bionic - apt-get install crossbuild-essential
+      - name: Docker target - bionic - apt-get install gcc-8 g++-8
         if: matrix.os_version_id == 'bionic'
         run: |
-          docker exec multiarch apt-get install -y cpp-8 gcc-8-base g++-8
+          docker exec multiarch apt-get install -y 
           docker exec multiarch update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 10
           docker exec multiarch update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 10
 
-      - name: Docker target - apt-get install crossbuild-essential bionic
+      - name: Docker target - bionic - apt-get install crossbuild gcc-8 g++-8
         if: matrix.os_version_id == 'bionic' && matrix.arch != 'amd64'
         run: |
-          docker exec multiarch apt-get install -y cpp-8-aarch64-linux-gnu g++-8-aarch64-linux-gnu gcc-8-aarch64-linux-gnu
+          docker exec multiarch apt-get install -y cpp-8-${{ matrix.CHOST }} g++-8-${{ matrix.CHOST }} gcc-8-${{ matrix.CHOST }}
           docker exec multiarch update-alternatives --install /usr/bin/${{ matrix.CHOST }}-gcc ${{ matrix.CHOST }}-gcc /usr/bin/${{ matrix.CHOST }}-gcc-8 10
           docker exec multiarch update-alternatives --install /usr/bin/${{ matrix.CHOST }}-g++ ${{ matrix.CHOST }}-g++ /usr/bin/${{ matrix.CHOST }}-g++-8 10
 
