@@ -112,7 +112,7 @@ jobs:
           docker exec bintest apt-get install -y openssl
 
       - name: Docker target - apt-get install crossbuild-essential
-
+        if: matrix.arch != 'amd64'
         run: docker exec multiarch apt-get install -y crossbuild-essential-${{ matrix.arch }}
 
       - name: Docker target - apt-get install cross target deps
