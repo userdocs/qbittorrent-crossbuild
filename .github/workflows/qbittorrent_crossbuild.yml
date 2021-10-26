@@ -110,10 +110,10 @@ jobs:
           docker exec multiarch apt-get install -y build-essential curl pkg-config automake libtool git perl python3 python3-dev unzip
           docker exec bintest apt-get install -y openssl
 
-      - name: Docker target - bionic - apt-get install gcc-8 g++-8
+      - name: Docker target - bionic - apt-get install gcc-8-base g++-8
         if: matrix.os_version_id == 'bionic'
         run: |
-          docker exec multiarch apt-get install -y  cpp-8 gcc-8-base g++-8
+          docker exec multiarch apt-get install -y cpp-8 gcc-8-base g++-8
           docker exec multiarch update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 10
           docker exec multiarch update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 10
 
