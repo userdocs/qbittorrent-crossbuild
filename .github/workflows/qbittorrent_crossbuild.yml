@@ -36,8 +36,6 @@ jobs:
           - os_id: debian
             os_version_id: focal
           - os_id: ubuntu
-            os_version_id: stretch
-          - os_id: ubuntu
             os_version_id: buster
           - os_id: ubuntu
             os_version_id: bullseye
@@ -93,7 +91,6 @@ jobs:
           docker exec -w /etc/apt/ multiarch  bash -c 'echo "deb [arch=amd64] http://security.ubuntu.com/ubuntu/ ${{ matrix.os_version_id }}-security main restricted universe multiverse" >> sources.list'
 
       - name: Docker target - dpkg configure arch
-        if: matrix.arch != 'amd64'
         run: docker exec multiarch dpkg --add-architecture ${{ matrix.arch }}
 
       - name: Docker target - Run apt-get update
@@ -119,18 +116,21 @@ jobs:
         run: docker exec multiarch apt-get install -y zlib1g-dev:${{ matrix.arch }} libssl-dev:${{ matrix.arch }} libgeoip-dev:${{ matrix.arch }} libstdc++-*-dev:${{ matrix.arch }}
 
       - name: Docker target - bionic - apt-get install gcc-8-base g++-8
-        if: matrix.os_version_id == 'bionic' && matrix.arch == 'amd64'
+        if: matrix.arch == 'amd64' && matrix.os_version_id == 'bionic'
         run: |
-          docker exec multiarch apt-get install -y gcc-8-base g++-8
-          docker exec multiarch update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 10
-          docker exec multiarch update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 10
+          docker exec multiarch apt-get install -y gcc-8 g++-8
 
-      - name: Docker target - bionic - apt-get install gcc-8-base g++-8
-        if: matrix.os_version_id == 'bionic' && matrix.arch != 'amd64'
+      - name: Docker target - bionic - apt-get install gcc-8 g++-8 cross
+        if: matrix.arch != 'amd64' && matrix.os_version_id == 'bionic'
         run: |
           docker exec multiarch apt-get install -y cpp-8-${{ matrix.CHOST }} g++-8-${{ matrix.CHOST }} gcc-8-${{ matrix.CHOST }}
-          docker exec multiarch update-alternatives --install /usr/bin/${{ matrix.CHOST }}-gcc ${{ matrix.CHOST }}-gcc /usr/bin/${{ matrix.CHOST }}-gcc-8 10
-          docker exec multiarch update-alternatives --install /usr/bin/${{ matrix.CHOST }}-g++ ${{ matrix.CHOST }}-g++ /usr/bin/${{ matrix.CHOST }}-g++-8 10
+
+      - name: Docker target - bionic - reconfigure build vars
+        if: matrix.os_version_id == 'bionic'
+        run: |
+          echo "CC={{ matrix.CHOST }}-8" >> $GITHUB_ENV
+          echo "AR={{ matrix.CHOST }}-8" >> $GITHUB_ENV
+          echo "CXX={{ matrix.CHOST }}-8" >> $GITHUB_ENV
 
       - name: Docker target - - apt-get install qt gui cross target deps
         if: matrix.qt_features == '-D QT_FEATURE_gui=ON -D QT_FEATURE_widgets=ON -D QT_FEATURE_dbus=ON'
@@ -195,7 +195,8 @@ jobs:
         run: |
           docker exec -w /root/qtbase-everywhere-src-${{ env.qt6_version }} multiarch cmake -Wno-dev -Wno-deprecated -G Ninja -B build \
           -D QT_FEATURE_optimize_full=on \
-           ${{ matrix.qt_features }} -D QT_FEATURE_openssl_linked=on -D QT_FEATURE_system_pcre2=off -D QT_FEATURE_system_harfbuzz=off \
+          ${{ matrix.qt_features }} -D QT_FEATURE_openssl_linked=on -D QT_FEATURE_system_pcre2=off -D QT_FEATURE_system_harfbuzz=off \
+          -D QT_FEATURE_system_libjpeg=off -D QT_FEATURE_system_libpng=off -D QT_FEATURE_system_freetype=off \
           -D QT_FEATURE_testlib=off -D QT_BUILD_EXAMPLES=off -D QT_BUILD_TESTS=off \
           -D CMAKE_BUILD_TYPE="release" \
           -D CMAKE_CXX_STANDARD="17" \
