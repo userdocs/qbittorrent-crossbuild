@@ -8,7 +8,7 @@ Builds libtorrent `RC_2_0` + `QT6` + `qBittorrent` master packaged into a deb fi
 
 - Libtorrent and qBittorrent installed to - `/usr/local`
 
-- QT6 installed to - `/opt/QT6`
+- QT6 installed to - `/opt/swizzin_apps`
 
 
 ### Install dependencies
@@ -37,18 +37,16 @@ export PATH=/sbin:/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
 
 QT6 library path
 
-We are using QT6 and it's probably going to cause problems if loaded into `/usr/local/` therefore it is installed to `/opt/QT6` so we need to se this in the environment to load the libraries.
+We are using QT6 and it's probably going to cause problems if loaded into `/usr/local/` therefore it is installed to `/opt/swizzin_apps` so we need to se this in the environment to load the libraries.
 
-```bash
-export LD_LIBRARY_PATH="/opt/QT6/lib:/usr/local/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
-```
+Using the command `ldconfig` should enough to make sure library paths are loaded.
 
 ### Downloads:
 
 Example download using Debian Bullseye amd64.
 
 ```
-wget https://github.com/userdocs/qbittorrent_crossbuild/releases/download/4.4.0beta3_2.0.4.0/debian-bullseye-qbittorrent-amd64.deb
+wget https://github.com/userdocs/qbittorrent_crossbuild/releases/latest/download/debian-bullseye-qbittorrent-amd64.deb
 ```
 
 Check the release for all downloads
@@ -68,7 +66,6 @@ dpkg -i debian-bullseye-qbittorrent-amd64.deb
 - Debian Buster
 - Debian Bullseye
 - Ubuntu Focal
-- Ubuntu Hirsute
 
 ### Supported Arch:
 
