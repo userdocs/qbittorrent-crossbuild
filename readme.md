@@ -8,7 +8,7 @@ Builds libtorrent `RC_2_0` + `QT6` + `qBittorrent` master packaged into a deb fi
 
 - Libtorrent and qBittorrent installed to - `/usr/local`
 
-- QT6 installed to - `/opt/swizzin_apps`
+- QT6 installed to - `/opt/local`
 
 
 ### Install dependencies
@@ -18,13 +18,13 @@ There are builds for either the desktop version `qbittorrent` or the webui only 
 #### qbittorrent-nox (webui)
 
 ```bash
-apt install -y zlib1g libgeoip1
+apt install -y zlib1g openssl libgeoip1
 ```
 
 #### qbittorrent (desktop)
 
 ```bash
-apt install -y zlib1g libgeoip1 libglu1-mesa libopengl0 libxcb-xinput0
+apt install -y zlib1g openssl libgeoip1 libglu1-mesa libopengl0 libxcb-xinput0
 ```
 
 ### Environment settings
@@ -37,9 +37,13 @@ export PATH=/sbin:/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
 
 QT6 library path
 
-We are using QT6 and it's probably going to cause problems if loaded into `/usr/local/` therefore it is installed to `/opt/swizzin_apps` so we need to se this in the environment to load the libraries.
+We are using QT6 and it's probably going to cause problems if loaded into `/usr/local/` therefore it is installed to `/opt/local` .
 
-Using the command `ldconfig` should enough to make sure library paths are loaded.
+Using the command `ldconfig` should enough to make sure library paths are loaded as an `ldconfig` conf is included in the deb.
+
+```bash
+ldconfig
+```
 
 ### Downloads:
 
@@ -63,7 +67,7 @@ dpkg -i debian-bullseye-qbittorrent-amd64.deb
 
 ### Supported OS:
 
-- Debian Buster
+- Debian Buster (amd64 for the desktop as armhf and arm64 fail when building qbittorrent)
 - Debian Bullseye
 - Ubuntu Focal
 
