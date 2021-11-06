@@ -143,7 +143,7 @@ jobs:
         if: matrix.os_version_id == 'bionic'
         run: |
           echo "CC=${{ matrix.CHOST }}-gcc-8" >> env.custom
-          echo "AR=${{ matrix.CHOST }}-ar-8" >> env.custom
+          echo "AR=${{ matrix.CHOST }}-gcc-ar-8" >> env.custom
           echo "CXX=${{ matrix.CHOST }}-g++-8" >> env.custom
 
       - name: Docker target - - apt-get install qt gui cross target deps
