@@ -63,7 +63,7 @@ jobs:
       prerelease: false
 
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v2.4.0
 
       - name: Host - update
         run: sudo apt-get update
