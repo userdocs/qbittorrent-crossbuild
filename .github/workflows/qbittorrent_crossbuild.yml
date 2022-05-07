@@ -267,8 +267,8 @@ jobs:
       - name: Docker target - qt dejavu fonts - download and extract
         if: matrix.qt_features == '-D QT_FEATURE_gui=ON -D QT_FEATURE_widgets=ON -D QT_FEATURE_dbus=ON'
         run: |
-          docker exec --env-file env.custom -w /root multiarch wget "https://github.com/dejavu-fonts/dejavu-fonts/releases/download/version_2_37/dejavu-fonts-ttf-2.37.tar.bz2"
-          docker exec --env-file env.custom -w /root multiarch wget "https://github.com/dejavu-fonts/dejavu-fonts/releases/download/version_2_37/dejavu-lgc-fonts-ttf-2.37.tar.bz2"
+          docker exec --env-file env.custom -w /root multiarch curl -sNL "https://github.com/dejavu-fonts/dejavu-fonts/releases/download/version_2_37/dejavu-fonts-ttf-2.37.tar.bz2" -o dejavu-fonts-ttf-2.37.tar.bz2
+          docker exec --env-file env.custom -w /root multiarch curl -sNL "https://github.com/dejavu-fonts/dejavu-fonts/releases/download/version_2_37/dejavu-lgc-fonts-ttf-2.37.tar.bz2" -o dejavu-lgc-fonts-ttf-2.37.tar.bz2
           docker exec --env-file env.custom -w /root multiarch mkdir -p /root/build/${{ env.opt_dir_name }}/lib/fonts
           docker exec --env-file env.custom -w /root multiarch tar xf dejavu-fonts-ttf-2.37.tar.bz2 --strip-components=2 -C /root/build/${{ env.opt_dir_name }}/lib/fonts dejavu-fonts-ttf-2.37/ttf
           docker exec --env-file env.custom -w /root multiarch tar xf dejavu-lgc-fonts-ttf-2.37.tar.bz2 --strip-components=2 -C /root/build/${{ env.opt_dir_name }}/lib/fonts dejavu-lgc-fonts-ttf-2.37/ttf
