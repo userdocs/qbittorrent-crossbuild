@@ -276,18 +276,12 @@ jobs:
           docker exec --env-file env.custom -w /root multiarch tar xf dejavu-fonts-ttf-2.37.tar.bz2 --strip-components=2 -C /root/build/${{ env.opt_dir_name }}/lib/fonts dejavu-fonts-ttf-2.37/ttf
           docker exec --env-file env.custom -w /root multiarch tar xf dejavu-lgc-fonts-ttf-2.37.tar.bz2 --strip-components=2 -C /root/build/${{ env.opt_dir_name }}/lib/fonts dejavu-lgc-fonts-ttf-2.37/ttf
 
-      - name: Docker target - qbittorrent - git clone
-        run: docker exec --env-file env.custom multiarch git clone --shallow-submodules --recurse-submodules https://github.com/qbittorrent/qBittorrent.git /root/qbittorrent
-
-      - name: Docker target - qbittorrent - git clone
-        run: docker exec --env-file env.custom multiarch git clone --single-branch --branch "${{ env.github_branch }}" --shallow-submodules --recurse-submodules --depth 1 https://github.com/qbittorrent/qBittorrent.git qbittorrent
-
       - name: Docker target - qbittorrent set latest release as branch
         run: |
           echo "qbittorrent_branch=$(git ls-remote -q -t --refs https://github.com/qbittorrent/qBittorrent.git | awk '{sub("refs/tags/", "");sub("(.*)(-[^0-9].*|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)" >> $GITHUB_ENV
 
-      - name: Docker target - qbittorrent - git checkout ${{ env.qbittorrent_branch }}
-        run: docker exec --env-file env.custom -w /root/qbittorrent multiarch git checkout ${{ env.qbittorrent_branch }}
+      - name: Docker target - qbittorrent - git clone
+        run: docker exec --env-file env.custom multiarch git clone --single-branch --branch "${{ env.qbittorrent_branch }}" --shallow-submodules --recurse-submodules --depth 1 https://github.com/qbittorrent/qBittorrent.git /root/qbittorrent
 
       - name: Docker target - qbittorrent cmake configure
         run: |
