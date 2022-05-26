@@ -53,14 +53,11 @@ jobs:
 
     name: ${{ matrix.os_id }}:${{ matrix.os_version_id }} ${{ matrix.name }} ${{ matrix.arch }}
     env:
-      libtorrent_branch: v2.0.6
-      qbittorrent_branch: release-4.4.3
       CHOST: "${{ matrix.CHOST }}"
       CC: "${{ matrix.CHOST }}-gcc"
       AR: "${{ matrix.CHOST }}-ar"
       CXX: "${{ matrix.CHOST }}-g++"
       opt_dir_name: "opt/local"
-      qt_short_version: "6.3"
       cxx_standard: "17"
       prerelease: false
 
@@ -170,6 +167,10 @@ jobs:
       - name: libtorrent - git clone
         run: docker exec --env-file env.custom multiarch git clone --shallow-submodules --recurse-submodules https://github.com/arvidn/libtorrent.git /root/libtorrent
 
+      - name: Docker host - libtorrent set latest release as branch
+        run: |
+          echo "libtorrent_branch=$(git ls-remote -q -t --refs https://github.com/arvidn/libtorrent.git | awk '/\/v2/{sub("refs/tags/", "");sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)" >> $GITHUB_ENV
+
       - name: libtorrent - git checkout ${{ env.libtorrent_branch }}
         run: docker exec --env-file env.custom -w /root/libtorrent multiarch git checkout ${{ env.libtorrent_branch }}
 
@@ -192,8 +193,7 @@ jobs:
 
       - name: Docker target - qt get latest release info and set to env
         run: |
-          qt_github_tag_list="$(git ls-remote -q -t --refs https://github.com/qt/qtbase.git | awk '{sub("refs/tags/", "");sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV)"
-          qt_github_tag="$(grep -Eom1 "v${{ env.qt_short_version }}.([0-9]{1,2})" <<< "${qt_github_tag_list}")"
+          qt_github_tag="$(git ls-remote -q -t --refs https://github.com/qt/qtbase.git | awk '/\/v6/{sub("refs/tags/", "");sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
           echo "qt_version=${qt_github_tag/v/}" >> $GITHUB_ENV
 
       - name: Docker target - qt set the download urls
@@ -275,6 +275,13 @@ jobs:
 
       - name: Docker target - qbittorrent - git clone
         run: docker exec --env-file env.custom multiarch git clone --shallow-submodules --recurse-submodules https://github.com/qbittorrent/qBittorrent.git /root/qbittorrent
+
+      - name: Docker target - qbittorrent - git clone
+        run: docker exec --env-file env.custom multiarch git clone --single-branch --branch "${{ env.github_branch }}" --shallow-submodules --recurse-submodules --depth 1 https://github.com/qbittorrent/qBittorrent.git qbittorrent
+
+      - name: Docker target - qbittorrent set latest release as branch
+        run: |
+          echo "qbittorrent_branch=$(git ls-remote -q -t --refs https://github.com/qbittorrent/qBittorrent.git | awk '{sub("refs/tags/", "");sub("(.*)(-[^0-9].*|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)" >> $GITHUB_ENV
 
       - name: Docker target - qbittorrent - git checkout ${{ env.qbittorrent_branch }}
         run: docker exec --env-file env.custom -w /root/qbittorrent multiarch git checkout ${{ env.qbittorrent_branch }}
