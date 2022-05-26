@@ -194,8 +194,10 @@ jobs:
       - name: Docker target - qt get latest release info and set to env
         run: |
           qt_github_tag="$(git ls-remote -q -t --refs https://github.com/qt/qtbase.git | awk '/\/v6/{sub("refs/tags/", "");sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
-          echo "qt_version=${qt_github_tag/v/}" >> $GITHUB_ENV
-          echo "qt_short_version=${qt_version%.*}" >> $GITHUB_ENV
+          qt_version="${qt_github_tag/v/}"
+          qt_short_version="${qt_version%.*}"
+          echo "qt_version=${qt_version}" >> $GITHUB_ENV
+          echo "qt_short_version=${qt_short_version}" >> $GITHUB_ENV
 
       - name: Docker target - qt set the download urls
         run: |
