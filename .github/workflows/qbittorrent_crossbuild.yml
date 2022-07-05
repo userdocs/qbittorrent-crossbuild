@@ -149,7 +149,7 @@ jobs:
         if: matrix.os_version_id != 'bionic' && matrix.os_version_id != 'buster'
         run: docker exec --env-file env.custom multiarch apt-get install -y libdouble-conversion3:${{ matrix.arch }} libdouble-conversion-dev:${{ matrix.arch }} libmd4c0:${{ matrix.arch }} libmd4c-dev:${{ matrix.arch }}
 
-      - name: Docker target - apt-get install cross target deps - no bionic or buster focal
+      - name: Docker target - apt-get install cross target deps - no bionic or buster or focal
         if: matrix.os_version_id != 'bionic' && matrix.os_version_id != 'bionic' && matrix.os_version_id != 'buster'
         run: docker exec --env-file env.custom multiarch apt-get install -y libmd4c-html0:${{ matrix.arch }} libmd4c-html0-dev:${{ matrix.arch }}
 
