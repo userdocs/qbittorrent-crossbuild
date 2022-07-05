@@ -143,15 +143,15 @@ jobs:
         run: docker exec --env-file env.custom multiarch apt-get install -y crossbuild-essential-${{ matrix.arch }}
 
       - name: Docker target - apt-get install cross target deps
-        run: docker exec --env-file env.custom multiarch apt-get install -y zlib1g-dev:${{ matrix.arch }} libssl-dev:${{ matrix.arch }} libstdc++-*-dev:${{ matrix.arch }} libicu6*:${{ matrix.arch }} libicu-dev:${{ matrix.arch }} libgeoip-dev:${{ matrix.arch }} libdouble-conversion-dev:${{ matrix.arch }}
+        run: docker exec --env-file env.custom multiarch apt-get install -y zlib1g-dev:${{ matrix.arch }} libssl-dev:${{ matrix.arch }} libstdc++-*-dev:${{ matrix.arch }} libicu6*:${{ matrix.arch }} libicu-dev:${{ matrix.arch }} libgeoip-dev:${{ matrix.arch }}
 
-      - name: Docker target - apt-get install cross target deps - no bionic or buster
+      - name: Docker target - apt-get install cross target deps - only buster
         if: matrix.os_version_id == 'buster'
-        run: docker exec --env-file env.custom multiarch apt-get install -y libdouble-conversion1:${{ matrix.arch }}
+        run: docker exec --env-file env.custom multiarch apt-get install -y libdouble-conversion1:${{ matrix.arch }}  libdouble-conversion-dev:${{ matrix.arch }}
 
       - name: Docker target - apt-get install cross target deps - no bionic or buster
         if: matrix.os_version_id != 'bionic' && matrix.os_version_id != 'buster'
-        run: docker exec --env-file env.custom multiarch apt-get install -y libdouble-conversion3:${{ matrix.arch }} libmd4c0:${{ matrix.arch }} libmd4c-dev:${{ matrix.arch }}
+        run: docker exec --env-file env.custom multiarch apt-get install -y libdouble-conversion3:${{ matrix.arch }}  libdouble-conversion-dev:${{ matrix.arch }} libmd4c0:${{ matrix.arch }} libmd4c-dev:${{ matrix.arch }}
 
       - name: Docker target - apt-get install cross target deps - no bionic or buster or focal
         if: matrix.os_version_id != 'bionic' && matrix.os_version_id != 'focal' && matrix.os_version_id != 'buster'
