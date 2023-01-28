@@ -327,7 +327,9 @@ jobs:
         run: docker exec --env-file env.custom -w /root/qbittorrent multiarch cmake --install build
 
       - name: Docker target - Set full qBittorrent version to variable using strings
-        run: echo "qbittorrent_version=$(strings -d build/${{ env.opt_dir_name }}/bin/${{ matrix.name }} | grep -P '^v\d+\.\d+\.\d+' | sed 's/v//')" >> $GITHUB_ENV
+        run: |
+          qbittorrent_version="${{ env.qbittorrent_branch }}"
+          echo "qbittorrent_version=${qbittorrent_version/release-}" >> $GITHUB_ENV
 
       - name: Docker target - Set deb dependencies for qbittorrent-nox
         if: matrix.name == 'qbittorrent-nox'
