@@ -326,7 +326,7 @@ jobs:
       - name: Docker target - qbittorrent cmake install
         run: docker exec --env-file env.custom -w /root/qbittorrent multiarch cmake --install build
 
-      - name: Docker target - Set full qBittorrent version to variable using strings
+      - name: Docker target - Set full qBittorrent version to variable
         run: |
           qbittorrent_version="${{ env.qbittorrent_branch }}"
           echo "qbittorrent_version=${qbittorrent_version/release-}" >> $GITHUB_ENV
