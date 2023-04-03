@@ -62,19 +62,28 @@ jobs:
       prerelease: false
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Host - Checkout action
+        uses: actions/checkout@v3
+
+      # Fix this bug https://github.com/actions/runner-images/issues/7192
+      - name: Host - phased updates
+        run: echo 'APT::Get::Always-Include-Phased-Updates "false";' | sudo tee /etc/apt/apt.conf.d/99-phased-updates
+
+      # Bootstrap Ubuntu Lunar repo so that we can install specific app we may need, like binfmt and qemu-user-static
+      - name: Host - set up lunar repo -t lunar
+        run: |
+          printf '%b\n' 'Package: *\nPin: release n=lunar\nPin-Priority: 50' | sudo tee /etc/apt/preferences
+          printf '%b\n' 'deb http://archive.ubuntu.com/ubuntu/ lunar main universe restricted' | sudo tee /etc/apt/sources.list.d/lunar.list
 
       - name: Host - update
         run: sudo apt-get update
 
-      - name: Host - upgrade
-        run: sudo apt-get -y upgrade
+      # - name: Host - upgrade
+      #   run: sudo apt-get -y upgrade
 
-      - name: Host - Install host qemu-static
-        run: sudo apt-get install -y qemu binfmt-support qemu-user-static
-
-      - name: Host - Docker multiarch bootstrap
-        run: sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+      # No action or other method to bootstrap binfmt. Install from lunar and we get the latest versions and full docker support
+      - name: Host - set up qemu-user-static binfmt-support from lunar
+        run: sudo apt install -t lunar libpipeline1 qemu-user-static binfmt-support
 
       - name: Host - Create Docker template env file
         run: |
