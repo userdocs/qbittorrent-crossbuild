@@ -10,7 +10,7 @@ jobs:
       matrix:
         name: [qbittorrent, qbittorrent-nox]
         os_id: [debian, ubuntu]
-        os_version_id: [bullseye, focal, jammy]
+        os_version_id: [bullseye, bookworm, focal, jammy, mantic]
         arch: [amd64, armhf, arm64]
         desktop_gui: ["", -D GUI=OFF]
         qt_features:
@@ -33,15 +33,15 @@ jobs:
             docker_platform: linux/arm64/v8
         exclude:
           - os_id: debian
-            os_version_id: bionic
-          - os_id: debian
             os_version_id: focal
           - os_id: debian
             os_version_id: jammy
-          - os_id: ubuntu
-            os_version_id: buster
+          - os_id: debian
+            os_version_id: mantic
           - os_id: ubuntu
             os_version_id: bullseye
+          - os_id: ubuntu
+            os_version_id: bookworm
           - name: qbittorrent
             desktop_gui: -D GUI=OFF
           - name: qbittorrent-nox
@@ -154,32 +154,12 @@ jobs:
       - name: Docker target - apt-get install cross target deps
         run: docker exec --env-file env.custom multiarch apt-get install -y zlib1g-dev:${{ matrix.arch }} libssl-dev:${{ matrix.arch }} libstdc++-*-dev:${{ matrix.arch }} libicu6*:${{ matrix.arch }} libicu-dev:${{ matrix.arch }} libgeoip-dev:${{ matrix.arch }}
 
-      - name: Docker target - apt-get install cross target deps - only buster
-        if: matrix.os_version_id == 'buster'
-        run: docker exec --env-file env.custom multiarch apt-get install -y libdouble-conversion1:${{ matrix.arch }} libdouble-conversion-dev:${{ matrix.arch }}
-
-      - name: Docker target - apt-get install cross target deps - no bionic or buster
-        if: matrix.os_version_id != 'bionic' && matrix.os_version_id != 'buster'
+      - name: Docker target - apt-get install cross target deps
         run: docker exec --env-file env.custom multiarch apt-get install -y libdouble-conversion3:${{ matrix.arch }} libdouble-conversion-dev:${{ matrix.arch }} libmd4c0:${{ matrix.arch }} libmd4c-dev:${{ matrix.arch }}
 
-      - name: Docker target - apt-get install cross target deps - no bionic or buster or focal
-        if: matrix.os_version_id != 'bionic' && matrix.os_version_id != 'focal' && matrix.os_version_id != 'buster'
+      - name: Docker target - apt-get install cross target deps - no focal
+        if: matrix.os_version_id != 'focal'
         run: docker exec --env-file env.custom multiarch apt-get install -y libmd4c-html0:${{ matrix.arch }} libmd4c-html0-dev:${{ matrix.arch }}
-
-      - name: Docker target - bionic - apt-get install gcc-8-base g++-8
-        if: matrix.arch == 'amd64' && matrix.os_version_id == 'bionic'
-        run: docker exec --env-file env.custom multiarch apt-get install -y gcc-8 g++-8
-
-      - name: Docker target - bionic - apt-get install gcc-8 g++-8 cross
-        if: matrix.arch != 'amd64' && matrix.os_version_id == 'bionic'
-        run: docker exec --env-file env.custom multiarch apt-get install -y cpp-8-${{ matrix.CHOST }} g++-8-${{ matrix.CHOST }} gcc-8-${{ matrix.CHOST }}
-
-      - name: Docker target - bionic - reconfigure build vars
-        if: matrix.os_version_id == 'bionic'
-        run: |
-          echo "CC=${{ matrix.CHOST }}-gcc-8" >> env.custom
-          echo "AR=${{ matrix.CHOST }}-gcc-ar-8" >> env.custom
-          echo "CXX=${{ matrix.CHOST }}-g++-8" >> env.custom
 
       - name: Docker target - - apt-get install qt gui cross target deps
         if: matrix.qt_features == '-D QT_FEATURE_gui=ON -D QT_FEATURE_widgets=ON -D QT_FEATURE_dbus=ON'
@@ -375,6 +355,6 @@ jobs:
           replacesArtifacts: true
           tag: "${{ env.qbittorrent_version }}_${{ env.libtorrent_version }}"
           name: "qBittorrent ${{ env.qbittorrent_version }} libtorrent ${{ env.libtorrent_version }}"
-          body: "qBittorrent and qBittorrent-nox built with cmake, qBittorrent github master, libtorrent RC_2_0, qt6 on amd64 arm64 armhf for Debian Buster Bullseye and Ubuntu bionic Focal"
+          body: "qBittorrent and qBittorrent-nox built with cmake, qBittorrent github master, libtorrent RC_2_0, qt6 on amd64 arm64 armhf for Debian Bullseye Bookworm and Ubuntu Focal Jammy Mantic"
           allowUpdates: true
           token: "${{ secrets.GITHUB_TOKEN }}"
