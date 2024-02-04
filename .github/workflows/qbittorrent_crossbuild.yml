@@ -63,7 +63,7 @@ jobs:
 
     steps:
       - name: Host - Checkout action
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Fix this bug https://github.com/actions/runner-images/issues/7192
       - name: Host - phased updates
