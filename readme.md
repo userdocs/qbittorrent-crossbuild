@@ -10,7 +10,6 @@ Builds libtorrent `RC_2_0` + `QT6` + `qBittorrent` master packaged into a deb fi
 
 - QT6 installed to - `/opt/local`
 
-
 ### Install dependencies
 
 There are builds for either the desktop version `qbittorrent` or the webui only version `qbittorrent-nox`
@@ -24,7 +23,7 @@ apt install -y zlib1g openssl libgeoip1
 #### qbittorrent (desktop)
 
 ```bash
-apt install -y zlib1g openssl libgeoip1 libglu1-mesa libopengl0 libxcb-xinput0
+apt install -y zlib1g openssl libgeoip1 libglu1-mesa libopengl0 libxcb-xinput0 libdouble-conversion3 libmd4c0 libmd4c-html0 qt6-wayland
 ```
 
 ### Environment settings
