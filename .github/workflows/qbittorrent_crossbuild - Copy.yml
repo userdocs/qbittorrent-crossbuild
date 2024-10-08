@@ -247,7 +247,7 @@ jobs:
 
       - name: Docker target - qt stuff
         run: |
-          docker exec --env-file env.custom multiarch apk add python3 python3-dev musl-dev linux-headers py3-pip
+          docker exec --env-file env.custom multiarch apt install python3 pip
           docker exec --env-file env.custom multiarch pip install -U aqtinstall --break-system-packages
           docker exec --env-file env.custom multiarch aqt install-qt linux desktop ${{ env.qt_version }} -O /opt --archives qtbase qtsvg qttools
           docker exec --env-file env.custom multiarch cp -rf /opt/${{ env.qt_version }}/gcc_64/. /root/build/${{ env.opt_dir_name }}
