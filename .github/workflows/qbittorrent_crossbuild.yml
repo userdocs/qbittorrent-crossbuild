@@ -364,7 +364,7 @@ jobs:
           docker exec --env-file env.custom -w /root/build/etc/ld.so.conf.d multiarch bash -c "echo '/${{ env.opt_dir_name }}/lib' > qbittorrent.conf"
 
       - name: Host - Create deb packages
-        uses: jiro4989/build-deb-action@v3
+        uses: jiro4989/build-deb-action@v4
         with:
           package: "${{ matrix.name }}"
           package_root: build
