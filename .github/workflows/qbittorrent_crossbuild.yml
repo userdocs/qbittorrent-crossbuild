@@ -90,7 +90,7 @@ jobs:
         run: sudo apt install libpipeline1 qemu-user-static binfmt-support
 
       - name: Host - Create docker ${{ env.container_name }} ${{ matrix.arch }} container
-        run: docker run --name ${container_name} -it -d -v ${{ github.workspace }}:/home/github ghcr.io/userdocs/dcb:${{ matrix.os_id }}-${{ matrix.os_version_id }}-${{ matrix.arch }}
+        run: docker run --name ${container_name} -it -d -w /home/github -v ${{ github.workspace }}:/home/github ghcr.io/userdocs/dcb:${{ matrix.os_id }}-${{ matrix.os_version_id }}-${{ matrix.arch }}
 
       - name: Docker target - cmake and ninja download and install
         run: |
