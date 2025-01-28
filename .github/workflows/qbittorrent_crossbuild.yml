@@ -27,7 +27,7 @@ jobs:
       matrix:
         name: [qbittorrent, qbittorrent-nox]
         os_id: [debian, ubuntu]
-        os_version_id: [bookworm, noble]
+        os_version_id: [bookworm, jammy, noble]
         arch: [amd64, armhf, arm64]
         desktop_gui: ["", -D GUI=OFF]
         qt_features:
