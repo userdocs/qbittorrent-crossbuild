@@ -1,4 +1,4 @@
-name: qBitorrent libtorrent qt6 crossbuild package release
+name: qBittorrent libtorrent qt6 crossbuild package release
 
 on:
   workflow_dispatch:
@@ -109,27 +109,27 @@ jobs:
           printf '%s\n' "boost_include_dir=boost-${boost_version}" >> $GITHUB_ENV
 
       - name: libtorrent - git clone
-        run: docker exec ${container_name} git clone --shallow-submodules --recurse-submodules https://github.com/arvidn/libtorrent.git /home/github/libtorrent
+        run: docker exec -u github:github ${container_name} git clone --shallow-submodules --recurse-submodules https://github.com/arvidn/libtorrent.git /home/github/libtorrent
 
       - name: Docker host - libtorrent set latest release as branch
         run: printf '%s\n' "libtorrent_branch=$(git ls-remote -q -t --refs https://github.com/arvidn/libtorrent.git | awk '/\/v2/{sub("refs/tags/", "");sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)" >> $GITHUB_ENV
 
       - name: libtorrent - git checkout ${{ env.libtorrent_branch }}
-        run: docker exec -w /home/github/libtorrent ${container_name} git checkout ${{ env.libtorrent_branch }}
+        run: docker exec -u github:github -w /home/github/libtorrent ${container_name} git checkout ${{ env.libtorrent_branch }}
 
       - name: libtorrent - cmake configure
         run: |
-          docker exec -w /home/github/libtorrent ${container_name} cmake -Wno-dev -Wno-deprecated -G Ninja -B build \
+          docker exec -u github:github -w /home/github/libtorrent ${container_name} cmake -Wno-dev -Wno-deprecated -G Ninja -B build \
           -D CMAKE_BUILD_TYPE="Release" \
           -D CMAKE_CXX_STANDARD="${{ env.cxx_standard }}" \
           -D BOOST_INCLUDEDIR="/home/github/${{ env.boost_include_dir }}" \
           -D CMAKE_INSTALL_PREFIX="/home/github/build/${{ env.opt_dir_name }}"
 
       - name: libtorrent - cmake build
-        run: docker exec -w /home/github/libtorrent ${container_name} cmake --build build
+        run: docker exec -u github:github -w /home/github/libtorrent ${container_name} cmake --build build
 
       - name: libtorrent - cmake install
-        run: docker exec -w /home/github/libtorrent ${container_name} cmake --install build
+        run: docker exec -u github:github -w /home/github/libtorrent ${container_name} cmake --install build
 
       - name: Set full libtorrent version to variable using strings
         run: printf '%s\n' "libtorrent_version=$(strings -d build/${{ env.opt_dir_name }}/lib/libtorrent-rasterbar.so | sed -rn 's|^libtorrent/(.*)|\1|p' | head -n 1)" >> $GITHUB_ENV
@@ -150,12 +150,12 @@ jobs:
 
       - name: Docker target - qt qtbase - curl
         run: |
-          docker exec ${container_name} curl -sNL ${{ env.qt_qtbase_url }} -o qtbase.tar.xz
-          docker exec ${container_name} tar xf qtbase.tar.xz
+          docker exec -u github:github ${container_name} curl -sNL ${{ env.qt_qtbase_url }} -o qtbase.tar.xz
+          docker exec -u github:github ${container_name} tar xf qtbase.tar.xz
 
       - name: Docker target - qt qtbase - cmake configure
         run: |
-          docker exec -w /home/github/qtbase-everywhere-src-${{ env.qt_version }} ${container_name} cmake -Wno-dev -Wno-deprecated -G Ninja -B build \
+          docker exec -u github:github -w /home/github/qtbase-everywhere-src-${{ env.qt_version }} ${container_name} cmake -Wno-dev -Wno-deprecated -G Ninja -B build \
           -D QT_FEATURE_optimize_full=on \
           ${{ matrix.qt_features }} -D QT_FEATURE_openssl_linked=on \
           -D QT_FEATURE_system_pcre2=off -D QT_FEATURE_system_harfbuzz=off -D QT_FEATURE_system_freetype=off \
@@ -166,68 +166,68 @@ jobs:
           -D CMAKE_INSTALL_PREFIX="/home/github/build/${{ env.opt_dir_name }}"
 
       - name: Docker target - qt qtbase - cmake build
-        run: docker exec -w /home/github/qtbase-everywhere-src-${{ env.qt_version }} ${container_name} cmake --build build
+        run: docker exec -u github:github -w /home/github/qtbase-everywhere-src-${{ env.qt_version }} ${container_name} cmake --build build
 
       - name: Docker target - qt qtbase - cmake install
-        run: docker exec -w /home/github/qtbase-everywhere-src-${{ env.qt_version }} ${container_name} cmake --install build
+        run: docker exec -u github:github -w /home/github/qtbase-everywhere-src-${{ env.qt_version }} ${container_name} cmake --install build
 
       - name: Docker target - qt qtsvg - curl
         run: |
-          docker exec ${container_name} curl -sNL ${{ env.qt_qtsvg_url }} -o qtsvg.tar.xz
-          docker exec ${container_name} tar xf qtsvg.tar.xz
+          docker exec -u github:github ${container_name} curl -sNL ${{ env.qt_qtsvg_url }} -o qtsvg.tar.xz
+          docker exec -u github:github ${container_name} tar xf qtsvg.tar.xz
 
       - name: Docker target - qt qtsvg - cmake configure
         run: |
-          docker exec -w /home/github/qtsvg-everywhere-src-${{ env.qt_version }} ${container_name} cmake -Wno-dev -Wno-deprecated -G Ninja -B build \
+          docker exec -u github:github -w /home/github/qtsvg-everywhere-src-${{ env.qt_version }} ${container_name} cmake -Wno-dev -Wno-deprecated -G Ninja -B build \
           -D CMAKE_BUILD_TYPE="release" \
           -D CMAKE_CXX_STANDARD="${{ env.cxx_standard }}" \
           -D CMAKE_PREFIX_PATH="/home/github/build/${{ env.opt_dir_name }}" \
           -D CMAKE_INSTALL_PREFIX="/home/github/build/${{ env.opt_dir_name }}"
 
       - name: Docker target - qt qtsvg - cmake build
-        run: docker exec -w /home/github/qtsvg-everywhere-src-${{ env.qt_version }} ${container_name} cmake --build build
+        run: docker exec -u github:github -w /home/github/qtsvg-everywhere-src-${{ env.qt_version }} ${container_name} cmake --build build
 
       - name: Docker target - qt qtsvg - cmake install
-        run: docker exec -w /home/github/qtsvg-everywhere-src-${{ env.qt_version }} ${container_name} cmake --install build
+        run: docker exec -u github:github -w /home/github/qtsvg-everywhere-src-${{ env.qt_version }} ${container_name} cmake --install build
 
       - name: Docker target - qt qttools - curl
         run: |
-          docker exec ${container_name} curl -sNL ${{ env.qt_qttools_url }} -o qttools.tar.xz
-          docker exec ${container_name} tar xf qttools.tar.xz
+          docker exec -u github:github ${container_name} curl -sNL ${{ env.qt_qttools_url }} -o qttools.tar.xz
+          docker exec -u github:github ${container_name} tar xf qttools.tar.xz
 
       - name: Docker target - qt qttools - cmake configure
         run: |
-          docker exec -w /home/github/qttools-everywhere-src-${{ env.qt_version }} ${container_name} cmake -Wno-dev -Wno-deprecated -G Ninja -B build \
+          docker exec -u github:github -w /home/github/qttools-everywhere-src-${{ env.qt_version }} ${container_name} cmake -Wno-dev -Wno-deprecated -G Ninja -B build \
           -D CMAKE_BUILD_TYPE="release" \
           -D CMAKE_CXX_STANDARD="${{ env.cxx_standard }}" \
           -D CMAKE_PREFIX_PATH="/home/github/build/${{ env.opt_dir_name }}" \
           -D CMAKE_INSTALL_PREFIX="/home/github/build/${{ env.opt_dir_name }}"
 
       - name: Docker target - qt qttools - cmake build
-        run: docker exec -w /home/github/qttools-everywhere-src-${{ env.qt_version }} ${container_name} cmake --build build
+        run: docker exec -u github:github -w /home/github/qttools-everywhere-src-${{ env.qt_version }} ${container_name} cmake --build build
 
       - name: Docker target - qt qttools - cmake install
-        run: docker exec -w /home/github/qttools-everywhere-src-${{ env.qt_version }} ${container_name} cmake --install build
+        run: docker exec -u github:github -w /home/github/qttools-everywhere-src-${{ env.qt_version }} ${container_name} cmake --install build
 
       - name: Docker target - qt dejavu fonts - download and extract
         if: matrix.qt_features == '-D QT_FEATURE_gui=ON -D QT_FEATURE_widgets=ON -D QT_FEATURE_dbus=ON'
         run: |
-          docker exec -w /home/github ${container_name} curl -sNL "https://github.com/dejavu-fonts/dejavu-fonts/releases/download/version_2_37/dejavu-fonts-ttf-2.37.tar.bz2" -o dejavu-fonts-ttf-2.37.tar.bz2
-          docker exec -w /home/github ${container_name} curl -sNL "https://github.com/dejavu-fonts/dejavu-fonts/releases/download/version_2_37/dejavu-lgc-fonts-ttf-2.37.tar.bz2" -o dejavu-lgc-fonts-ttf-2.37.tar.bz2
-          docker exec -w /home/github ${container_name} mkdir -p /home/github/build/${{ env.opt_dir_name }}/lib/fonts
-          docker exec -w /home/github ${container_name} tar xf dejavu-fonts-ttf-2.37.tar.bz2 --strip-components=2 -C /home/github/build/${{ env.opt_dir_name }}/lib/fonts dejavu-fonts-ttf-2.37/ttf
-          docker exec -w /home/github ${container_name} tar xf dejavu-lgc-fonts-ttf-2.37.tar.bz2 --strip-components=2 -C /home/github/build/${{ env.opt_dir_name }}/lib/fonts dejavu-lgc-fonts-ttf-2.37/ttf
+          docker exec -u github:github -w /home/github ${container_name} curl -sNL "https://github.com/dejavu-fonts/dejavu-fonts/releases/download/version_2_37/dejavu-fonts-ttf-2.37.tar.bz2" -o dejavu-fonts-ttf-2.37.tar.bz2
+          docker exec -u github:github -w /home/github ${container_name} curl -sNL "https://github.com/dejavu-fonts/dejavu-fonts/releases/download/version_2_37/dejavu-lgc-fonts-ttf-2.37.tar.bz2" -o dejavu-lgc-fonts-ttf-2.37.tar.bz2
+          docker exec -u github:github -w /home/github ${container_name} mkdir -p /home/github/build/${{ env.opt_dir_name }}/lib/fonts
+          docker exec -u github:github -w /home/github ${container_name} tar xf dejavu-fonts-ttf-2.37.tar.bz2 --strip-components=2 -C /home/github/build/${{ env.opt_dir_name }}/lib/fonts dejavu-fonts-ttf-2.37/ttf
+          docker exec -u github:github -w /home/github ${container_name} tar xf dejavu-lgc-fonts-ttf-2.37.tar.bz2 --strip-components=2 -C /home/github/build/${{ env.opt_dir_name }}/lib/fonts dejavu-lgc-fonts-ttf-2.37/ttf
 
       - name: Docker target - qbittorrent set latest release as branch
         run: |
           printf '%s\n' "qbittorrent_branch=$(git ls-remote -q -t --refs https://github.com/qbittorrent/qBittorrent.git | awk '{sub("refs/tags/", "");sub("(.*)(-[^0-9].*|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)" >> $GITHUB_ENV
 
       - name: Docker target - qbittorrent - git clone
-        run: docker exec ${container_name} git clone --single-branch --branch "${{ env.qbittorrent_branch }}" --shallow-submodules --recurse-submodules --depth 1 https://github.com/qbittorrent/qBittorrent.git /home/github/qbittorrent
+        run: docker exec -u github:github ${container_name} git clone --single-branch --branch "${{ env.qbittorrent_branch }}" --shallow-submodules --recurse-submodules --depth 1 https://github.com/qbittorrent/qBittorrent.git /home/github/qbittorrent
 
       - name: Docker target - qbittorrent cmake configure
         run: |
-          docker exec -w /home/github/qbittorrent ${container_name} cmake -Wno-dev -Wno-deprecated -G Ninja -B build \
+          docker exec -u github:github -w /home/github/qbittorrent ${container_name} cmake -Wno-dev -Wno-deprecated -G Ninja -B build \
           -D CMAKE_BUILD_TYPE="release" \
           -D QT6="ON" \
           -D CMAKE_CXX_STANDARD="${{ env.cxx_standard }}" \
@@ -237,10 +237,10 @@ jobs:
           -D CMAKE_INSTALL_PREFIX="/home/github/build/${{ env.opt_dir_name }}"
 
       - name: Docker target - qbittorrent cmake build
-        run: docker exec -w /home/github/qbittorrent ${container_name} cmake --build build
+        run: docker exec -u github:github -w /home/github/qbittorrent ${container_name} cmake --build build
 
       - name: Docker target - qbittorrent cmake install
-        run: docker exec -w /home/github/qbittorrent ${container_name} cmake --install build
+        run: docker exec -u github:github -w /home/github/qbittorrent ${container_name} cmake --install build
 
       - name: Docker target - Set full qBittorrent version to variable
         run: |
@@ -257,8 +257,8 @@ jobs:
 
       - name: Docker target - ldconfig - create /etc/ld.so.conf.d/qbittorrent.conf
         run: |
-          docker exec -w /home/github/build ${container_name} mkdir -p etc/ld.so.conf.d
-          docker exec -w /home/github/build/etc/ld.so.conf.d ${container_name} bash -c "printf '%s\n' '/${{ env.opt_dir_name }}/lib' > qbittorrent.conf"
+          docker exec -u github:github -w /home/github/build ${container_name} mkdir -p etc/ld.so.conf.d
+          docker exec -u github:github -w /home/github/build/etc/ld.so.conf.d ${container_name} bash -c "printf '%s\n' '/${{ env.opt_dir_name }}/lib' > qbittorrent.conf"
 
       - name: Host - Create deb packages
         uses: jiro4989/build-deb-action@v4
