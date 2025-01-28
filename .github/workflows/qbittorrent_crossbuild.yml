@@ -50,6 +50,8 @@ jobs:
             docker_platform: linux/arm64/v8
         exclude:
           - os_id: debian
+            os_version_id: jammy
+          - os_id: debian
             os_version_id: noble
           - os_id: ubuntu
             os_version_id: bookworm
@@ -77,46 +79,40 @@ jobs:
     steps:
       - name: Host - Checkout action
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Host - set up qemu-user-static binfmt-support
         run: sudo apt install libpipeline1 qemu-user-static binfmt-support
 
-      - name: Host - Create Docker template env file
-        run: |
-          echo "LANG=C.UTF8" > env.custom
-          echo "LANGUAGE=C.UTF8" >> env.custom
-          echo "LC_ALL=C.UTF8" >> env.custom
-          echo "LC_CTYPE=C.UTF8" >> env.custom
-
       - name: Host - Create docker ${{ env.container_name }} ${{ matrix.arch }} container
-        run: docker run --name ${container_name} -it -d -u 1001 --env-file env.custom -v ${{ github.workspace }}:/home/github ghcr.io/userdocs/dcb:${{ matrix.os_id }}-${{ matrix.os_version_id }}-${{ matrix.arch }}
+        run: docker run --name ${container_name} -it -d -v ${{ github.workspace }}:/home/github ghcr.io/userdocs/dcb:${{ matrix.os_id }}-${{ matrix.os_version_id }}-${{ matrix.arch }}
 
       - name: Docker target - cmake and ninja download and install
         run: |
           docker exec ${container_name} curl -sNL "https://github.com/userdocs/cmake_crossbuild/releases/latest/download/${{ matrix.os_id }}-${{ matrix.os_version_id }}-cmake-${{ matrix.arch }}.deb" -o ${{ matrix.os_id }}-${{ matrix.os_version_id }}-cmake-${{ matrix.arch }}.deb
-          docker exec ${container_name} sudo dpkg -i ${{ matrix.os_id }}-${{ matrix.os_version_id }}-cmake-${{ matrix.arch }}.deb
+          docker exec ${container_name} dpkg -i ${{ matrix.os_id }}-${{ matrix.os_version_id }}-cmake-${{ matrix.arch }}.deb
 
       - name: Docker target - - apt-get install qt gui cross target deps
         if: matrix.qt_features == '-D QT_FEATURE_gui=ON -D QT_FEATURE_widgets=ON -D QT_FEATURE_dbus=ON'
         run: |
-          docker exec ${container_name} sudo apt-get install -y libglu1-mesa-dev:${{ matrix.arch }} libfontconfig1-dev:${{ matrix.arch }} libfreetype6-dev:${{ matrix.arch }} libx11-dev:${{ matrix.arch }} libx11-xcb-dev:${{ matrix.arch }}
-          docker exec ${container_name} sudo apt-get install -y libxfixes-dev:${{ matrix.arch }} libxi-dev:${{ matrix.arch }} libxrender-dev:${{ matrix.arch }} libxkbcommon-dev:${{ matrix.arch }} libxkbcommon-x11-dev:${{ matrix.arch }}
-          docker exec ${container_name} sudo apt-get install -y libxcb.*-dev:${{ matrix.arch }} libxkbcommon-dev:${{ matrix.arch }} libxkbcommon-x11-dev:${{ matrix.arch }} libxext-dev:${{ matrix.arch }} xmlstarlet:${{ matrix.arch }}
+          docker exec ${container_name} apt-get install -y libglu1-mesa-dev:${{ matrix.arch }} libfontconfig1-dev:${{ matrix.arch }} libfreetype6-dev:${{ matrix.arch }} libx11-dev:${{ matrix.arch }} libx11-xcb-dev:${{ matrix.arch }}
+          docker exec ${container_name} apt-get install -y libxfixes-dev:${{ matrix.arch }} libxi-dev:${{ matrix.arch }} libxrender-dev:${{ matrix.arch }} libxkbcommon-dev:${{ matrix.arch }} libxkbcommon-x11-dev:${{ matrix.arch }}
+          docker exec ${container_name} apt-get install -y libxcb.*-dev:${{ matrix.arch }} libxkbcommon-dev:${{ matrix.arch }} libxkbcommon-x11-dev:${{ matrix.arch }} libxext-dev:${{ matrix.arch }} xmlstarlet:${{ matrix.arch }}
 
       - name: Docker target - Bootstrap the boost files
         run: |
           boost_version="$(git ls-remote -q -t --refs https://github.com/boostorg/boost.git | awk '{sub("refs/tags/boost-", "");sub("(.*)(rc|alpha|beta|-bgl)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
           curl -sNLk https://github.com/boostorg/boost/releases/latest/download/boost-${boost_version}-b2-nodocs.tar.xz -o "boost.tar.xz"
           tar xf "boost.tar.xz"
-          echo "boost_version=${boost_version}" >> $GITHUB_ENV
-          echo "boost_include_dir=boost-${boost_version}" >> $GITHUB_ENV
+          printf '%s\n' "boost_version=${boost_version}" >> $GITHUB_ENV
+          printf '%s\n' "boost_include_dir=boost-${boost_version}" >> $GITHUB_ENV
 
       - name: libtorrent - git clone
         run: docker exec ${container_name} git clone --shallow-submodules --recurse-submodules https://github.com/arvidn/libtorrent.git /home/github/libtorrent
 
       - name: Docker host - libtorrent set latest release as branch
-        run: |
-          echo "libtorrent_branch=$(git ls-remote -q -t --refs https://github.com/arvidn/libtorrent.git | awk '/\/v2/{sub("refs/tags/", "");sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)" >> $GITHUB_ENV
+        run: printf '%s\n' "libtorrent_branch=$(git ls-remote -q -t --refs https://github.com/arvidn/libtorrent.git | awk '/\/v2/{sub("refs/tags/", "");sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)" >> $GITHUB_ENV
 
       - name: libtorrent - git checkout ${{ env.libtorrent_branch }}
         run: docker exec -w /home/github/libtorrent ${container_name} git checkout ${{ env.libtorrent_branch }}
@@ -136,21 +132,21 @@ jobs:
         run: docker exec -w /home/github/libtorrent ${container_name} cmake --install build
 
       - name: Set full libtorrent version to variable using strings
-        run: echo "libtorrent_version=$(strings -d build/${{ env.opt_dir_name }}/lib/libtorrent-rasterbar.so | sed -rn 's|^libtorrent/(.*)|\1|p' | head -n 1)" >> $GITHUB_ENV
+        run: printf '%s\n' "libtorrent_version=$(strings -d build/${{ env.opt_dir_name }}/lib/libtorrent-rasterbar.so | sed -rn 's|^libtorrent/(.*)|\1|p' | head -n 1)" >> $GITHUB_ENV
 
       - name: Docker target - qt get latest release info and set to env
         run: |
           qt_github_tag="$(git ls-remote -q -t --refs https://github.com/qt/qtbase.git | awk '/\/v6/{sub("refs/tags/", "");sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
           qt_version="${qt_github_tag/v/}"
           qt_short_version="${qt_version%.*}"
-          echo "qt_version=${qt_version}" >> $GITHUB_ENV
-          echo "qt_short_version=${qt_short_version}" >> $GITHUB_ENV
+          printf '%s\n' "qt_version=${qt_version}" >> $GITHUB_ENV
+          printf '%s\n' "qt_short_version=${qt_short_version}" >> $GITHUB_ENV
 
       - name: Docker target - qt set the download urls
         run: |
-          echo "qt_qtbase_url=https://download.qt.io/official_releases/qt/${{ env.qt_short_version }}/${{ env.qt_version }}/submodules/qtbase-everywhere-src-${{ env.qt_version }}.tar.xz" >> $GITHUB_ENV
-          echo "qt_qttools_url=https://download.qt.io/official_releases/qt/${{ env.qt_short_version }}/${{ env.qt_version }}/submodules/qttools-everywhere-src-${{ env.qt_version }}.tar.xz" >> $GITHUB_ENV
-          echo "qt_qtsvg_url=https://download.qt.io/official_releases/qt/${{ env.qt_short_version }}/${{ env.qt_version }}/submodules/qtsvg-everywhere-src-${{ env.qt_version }}.tar.xz" >> $GITHUB_ENV
+          printf '%s\n' "qt_qtbase_url=https://download.qt.io/official_releases/qt/${{ env.qt_short_version }}/${{ env.qt_version }}/submodules/qtbase-everywhere-src-${{ env.qt_version }}.tar.xz" >> $GITHUB_ENV
+          printf '%s\n' "qt_qttools_url=https://download.qt.io/official_releases/qt/${{ env.qt_short_version }}/${{ env.qt_version }}/submodules/qttools-everywhere-src-${{ env.qt_version }}.tar.xz" >> $GITHUB_ENV
+          printf '%s\n' "qt_qtsvg_url=https://download.qt.io/official_releases/qt/${{ env.qt_short_version }}/${{ env.qt_version }}/submodules/qtsvg-everywhere-src-${{ env.qt_version }}.tar.xz" >> $GITHUB_ENV
 
       - name: Docker target - qt qtbase - curl
         run: |
@@ -224,7 +220,7 @@ jobs:
 
       - name: Docker target - qbittorrent set latest release as branch
         run: |
-          echo "qbittorrent_branch=$(git ls-remote -q -t --refs https://github.com/qbittorrent/qBittorrent.git | awk '{sub("refs/tags/", "");sub("(.*)(-[^0-9].*|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)" >> $GITHUB_ENV
+          printf '%s\n' "qbittorrent_branch=$(git ls-remote -q -t --refs https://github.com/qbittorrent/qBittorrent.git | awk '{sub("refs/tags/", "");sub("(.*)(-[^0-9].*|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)" >> $GITHUB_ENV
 
       - name: Docker target - qbittorrent - git clone
         run: docker exec ${container_name} git clone --single-branch --branch "${{ env.qbittorrent_branch }}" --shallow-submodules --recurse-submodules --depth 1 https://github.com/qbittorrent/qBittorrent.git /home/github/qbittorrent
@@ -249,20 +245,20 @@ jobs:
       - name: Docker target - Set full qBittorrent version to variable
         run: |
           qbittorrent_version="${{ env.qbittorrent_branch }}"
-          echo "qbittorrent_version=${qbittorrent_version/release-}" >> $GITHUB_ENV
+          printf '%s\n' "qbittorrent_version=${qbittorrent_version/release-}" >> $GITHUB_ENV
 
       - name: Docker target - Set deb dependencies for qbittorrent-nox
         if: matrix.name == 'qbittorrent-nox'
-        run: echo "qbittorrent-deb-deps=zlib1g,libgeoip1" >> $GITHUB_ENV
+        run: printf '%s\n' "qbittorrent-deb-deps=zlib1g,libgeoip1" >> $GITHUB_ENV
 
       - name: Docker target - Set deb dependencies for qbittorrent
         if: matrix.name == 'qbittorrent'
-        run: echo "qbittorrent-deb-deps=zlib1g,libgeoip1,libglu1-mesa,libopengl0,libxcb-xinput0"  >> $GITHUB_ENV
+        run: printf '%s\n' "qbittorrent-deb-deps=zlib1g,libgeoip1,libglu1-mesa,libopengl0,libxcb-xinput0"  >> $GITHUB_ENV
 
       - name: Docker target - ldconfig - create /etc/ld.so.conf.d/qbittorrent.conf
         run: |
           docker exec -w /home/github/build ${container_name} mkdir -p etc/ld.so.conf.d
-          docker exec -w /home/github/build/etc/ld.so.conf.d ${container_name} bash -c "echo '/${{ env.opt_dir_name }}/lib' > qbittorrent.conf"
+          docker exec -w /home/github/build/etc/ld.so.conf.d ${container_name} bash -c "printf '%s\n' '/${{ env.opt_dir_name }}/lib' > qbittorrent.conf"
 
       - name: Host - Create deb packages
         uses: jiro4989/build-deb-action@v4
