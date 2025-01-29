@@ -103,8 +103,7 @@ jobs:
           docker exec ${container_name} apt-get install -y
           libglu1-mesa-dev:${{ matrix.arch }} libfontconfig1-dev:${{ matrix.arch }} libfreetype6-dev:${{ matrix.arch }}
           libx11-dev:${{ matrix.arch }} libx11-xcb-dev:${{ matrix.arch }} libxfixes-dev:${{ matrix.arch }} libxi-dev:${{ matrix.arch }}
-          libxrender-dev:${{ matrix.arch }} libxkbcommon-dev:${{ matrix.arch }} libxkbcommon-x11-dev:${{ matrix.arch }}
-          libxcb.*-dev:${{ matrix.arch }} libxkbcommon-dev:${{ matrix.arch }} libxkbcommon-x11-dev:${{ matrix.arch }}
+          libxrender-dev:${{ matrix.arch }} libxkbcommon-dev:${{ matrix.arch }} libxcb*-dev:${{ matrix.arch }} libxkbcommon-x11-dev:${{ matrix.arch }}
           libxext-dev:${{ matrix.arch }} xmlstarlet:${{ matrix.arch }} libwayland-dev:${{ matrix.arch }}
           libwayland-egl1-mesa:${{ matrix.arch }} libwayland-server0:${{ matrix.arch }} libgles2-mesa-dev:${{ matrix.arch }}
 
