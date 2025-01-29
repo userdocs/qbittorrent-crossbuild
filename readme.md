@@ -6,9 +6,9 @@ This intends to serves as a testing and demonstration repo for qbittorrent and Q
 
 Builds libtorrent `RC_2_0` + `QT6` + `qBittorrent` master packaged into a deb file.
 
-- Libtorrent and qBittorrent installed to - `/usr/local`
+-   Libtorrent and qBittorrent installed to - `/usr/local`
 
-- QT6 installed to - `/opt/local`
+-   QT6 installed to - `/opt/local`
 
 ### Install dependencies
 
@@ -23,7 +23,7 @@ apt install -y zlib1g openssl libgeoip1
 #### qbittorrent (desktop)
 
 ```bash
-apt install -y zlib1g openssl libgeoip1 libglu1-mesa libopengl0 libxcb-xinput0 libdouble-conversion3 libmd4c0 libmd4c-html0 qt6-wayland
+apt install -y zlib1g openssl libgeoip1 libglu1-mesa libopengl0 libxcb-xinput0 libdouble-conversion3 libmd4c0 libmd4c-html0 qt6-wayland libxcb-* libxkbcommon-x11-0
 ```
 
 ### Environment settings
@@ -41,7 +41,7 @@ We are using QT6 and it's probably going to cause problems if loaded into `/usr/
 Using the command `ldconfig` should enough to make sure library paths are loaded as an `ldconfig` conf is included in the deb.
 
 ```bash
-ldconfig
+sudo ldconfig
 ```
 
 ### Downloads:
@@ -49,7 +49,7 @@ ldconfig
 Example download using Debian Bullseye amd64.
 
 ```
-wget https://github.com/userdocs/qbittorrent_crossbuild/releases/latest/download/debian-bullseye-qbittorrent-amd64.deb
+wget https://github.com/userdocs/qbittorrent_crossbuild/releases/latest/download/debian-bookworm-qbittorrent-amd64.deb
 ```
 
 Check the release for all downloads
@@ -61,17 +61,16 @@ https://github.com/userdocs/qbittorrent_crossbuild/releases/latest
 Install it:
 
 ```bash
-dpkg -i debian-bullseye-qbittorrent-amd64.deb
+dpkg -i debian-bookworm-qbittorrent-amd64.deb
 ```
 
 ### Supported OS:
 
-- Debian Buster (amd64 for the desktop as armhf and arm64 fail when building qbittorrent)
-- Debian Bullseye
-- Ubuntu Focal
+-   Debian Bookworm
+-   Ubuntu Jammy Noble
 
 ### Supported Arch:
 
-- armhf
-- aarch64
-- amd64
+-   armhf
+-   aarch64
+-   amd64
