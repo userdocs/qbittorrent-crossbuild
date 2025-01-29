@@ -99,18 +99,22 @@ jobs:
 
       - name: Docker target - - apt-get install qt gui cross target deps
         if: matrix.qt_features == '-D QT_FEATURE_gui=ON -D QT_FEATURE_widgets=ON -D QT_FEATURE_dbus=ON'
-        run: |
-          docker exec ${container_name} apt-get install -y libglu1-mesa-dev:${{ matrix.arch }} libfontconfig1-dev:${{ matrix.arch }} libfreetype6-dev:${{ matrix.arch }} libx11-dev:${{ matrix.arch }} libx11-xcb-dev:${{ matrix.arch }}
-          docker exec ${container_name} apt-get install -y libxfixes-dev:${{ matrix.arch }} libxi-dev:${{ matrix.arch }} libxrender-dev:${{ matrix.arch }} libxkbcommon-dev:${{ matrix.arch }} libxkbcommon-x11-dev:${{ matrix.arch }}
-          docker exec ${container_name} apt-get install -y libxcb.*-dev:${{ matrix.arch }} libxkbcommon-dev:${{ matrix.arch }} libxkbcommon-x11-dev:${{ matrix.arch }} libxext-dev:${{ matrix.arch }} xmlstarlet:${{ matrix.arch }}
+        run: >
+          docker exec ${container_name} apt-get install -y
+          libglu1-mesa-dev:${{ matrix.arch }} libfontconfig1-dev:${{ matrix.arch }} libfreetype6-dev:${{ matrix.arch }}
+          libx11-dev:${{ matrix.arch }} libx11-xcb-dev:${{ matrix.arch }} libxfixes-dev:${{ matrix.arch }} libxi-dev:${{ matrix.arch }}
+          libxrender-dev:${{ matrix.arch }} libxkbcommon-dev:${{ matrix.arch }} libxkbcommon-x11-dev:${{ matrix.arch }}
+          libxcb.*-dev:${{ matrix.arch }} libxkbcommon-dev:${{ matrix.arch }} libxkbcommon-x11-dev:${{ matrix.arch }}
+          libxext-dev:${{ matrix.arch }} xmlstarlet:${{ matrix.arch }} libwayland-dev:${{ matrix.arch }}
+          libwayland-egl1-mesa:${{ matrix.arch }} libwayland-server0:${{ matrix.arch }} libgles2-mesa-dev:${{ matrix.arch }}
 
-      - name: Docker target - Bootstrap the boost files
-        run: |
-          boost_version="$(git ls-remote -q -t --refs https://github.com/boostorg/boost.git | awk '{sub("refs/tags/boost-", "");sub("(.*)(rc|alpha|beta|-bgl)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
-          curl -sNLk https://github.com/boostorg/boost/releases/latest/download/boost-${boost_version}-b2-nodocs.tar.xz -o "boost.tar.xz"
-          tar xf "boost.tar.xz"
-          printf '%s\n' "boost_version=${boost_version}" >> $GITHUB_ENV
-          printf '%s\n' "boost_include_dir=boost-${boost_version}" >> $GITHUB_ENV
+      - name: Docker - Bootstrap the boost files
+        id: boost_info
+        uses: userdocs/actions/boost@main
+        with:
+          boost_version: ""
+          download_archive: true
+          extract_archive: true
 
       - name: libtorrent - git clone
         run: docker exec -u github:github ${container_name} git clone --shallow-submodules --recurse-submodules https://github.com/arvidn/libtorrent.git /home/github/libtorrent
@@ -122,11 +126,13 @@ jobs:
         run: docker exec -u github:github -w /home/github/libtorrent ${container_name} git checkout ${{ env.libtorrent_branch }}
 
       - name: libtorrent - cmake configure
-        run: |
-          docker exec -u github:github -w /home/github/libtorrent ${container_name} cmake -Wno-dev -Wno-deprecated -G Ninja -B build \
-          -D CMAKE_BUILD_TYPE="Release" \
-          -D CMAKE_CXX_STANDARD="${{ env.cxx_standard }}" \
-          -D BOOST_INCLUDEDIR="/home/github/${{ env.boost_include_dir }}" \
+        env:
+          boost_folder_name: ${{ steps.boost_info.outputs.BOOST_FOLDER_NAME }}
+        run: >
+          docker exec -u github:github -w /home/github/libtorrent ${container_name} cmake -Wno-dev -Wno-deprecated -G Ninja -B build
+          -D CMAKE_BUILD_TYPE="Release"
+          -D CMAKE_CXX_STANDARD="${{ env.cxx_standard }}"
+          -D BOOST_INCLUDEDIR="/home/github/${boost_folder_name}"
           -D CMAKE_INSTALL_PREFIX="/home/github/build/${{ env.opt_dir_name }}"
 
       - name: libtorrent - cmake build
@@ -158,15 +164,15 @@ jobs:
           docker exec -u github:github ${container_name} tar xf qtbase.tar.xz
 
       - name: Docker target - qt qtbase - cmake configure
-        run: |
-          docker exec -u github:github -w /home/github/qtbase-everywhere-src-${{ env.qt_version }} ${container_name} cmake -Wno-dev -Wno-deprecated -G Ninja -B build \
-          -D QT_FEATURE_optimize_full=on \
-          ${{ matrix.qt_features }} -D QT_FEATURE_openssl_linked=on \
-          -D QT_FEATURE_system_pcre2=off -D QT_FEATURE_system_harfbuzz=off -D QT_FEATURE_system_freetype=off \
-          -D QT_FEATURE_testlib=off -D QT_BUILD_EXAMPLES=off -D QT_BUILD_TESTS=off \
-          -D CMAKE_BUILD_TYPE="release" \
-          -D CMAKE_CXX_STANDARD="${{ env.cxx_standard }}" \
-          -D CMAKE_PREFIX_PATH="/home/github/build/${{ env.opt_dir_name }}" \
+        run: >
+          docker exec -u github:github -w /home/github/qtbase-everywhere-src-${{ env.qt_version }} ${container_name} cmake -Wno-dev -Wno-deprecated -G Ninja -B build
+          -D QT_FEATURE_optimize_full=on
+          ${{ matrix.qt_features }} -D QT_FEATURE_openssl_linked=on
+          -D QT_FEATURE_system_pcre2=off -D QT_FEATURE_system_harfbuzz=off -D QT_FEATURE_system_freetype=off
+          -D QT_FEATURE_testlib=off -D QT_BUILD_EXAMPLES=off -D QT_BUILD_TESTS=off
+          -D CMAKE_BUILD_TYPE="release"
+          -D CMAKE_CXX_STANDARD="${{ env.cxx_standard }}"
+          -D CMAKE_PREFIX_PATH="/home/github/build/${{ env.opt_dir_name }}"
           -D CMAKE_INSTALL_PREFIX="/home/github/build/${{ env.opt_dir_name }}"
 
       - name: Docker target - qt qtbase - cmake build
@@ -181,11 +187,11 @@ jobs:
           docker exec -u github:github ${container_name} tar xf qtsvg.tar.xz
 
       - name: Docker target - qt qtsvg - cmake configure
-        run: |
-          docker exec -u github:github -w /home/github/qtsvg-everywhere-src-${{ env.qt_version }} ${container_name} cmake -Wno-dev -Wno-deprecated -G Ninja -B build \
-          -D CMAKE_BUILD_TYPE="release" \
-          -D CMAKE_CXX_STANDARD="${{ env.cxx_standard }}" \
-          -D CMAKE_PREFIX_PATH="/home/github/build/${{ env.opt_dir_name }}" \
+        run: >
+          docker exec -u github:github -w /home/github/qtsvg-everywhere-src-${{ env.qt_version }} ${container_name} cmake -Wno-dev -Wno-deprecated -G Ninja -B build
+          -D CMAKE_BUILD_TYPE="release"
+          -D CMAKE_CXX_STANDARD="${{ env.cxx_standard }}"
+          -D CMAKE_PREFIX_PATH="/home/github/build/${{ env.opt_dir_name }}"
           -D CMAKE_INSTALL_PREFIX="/home/github/build/${{ env.opt_dir_name }}"
 
       - name: Docker target - qt qtsvg - cmake build
@@ -200,11 +206,11 @@ jobs:
           docker exec -u github:github ${container_name} tar xf qttools.tar.xz
 
       - name: Docker target - qt qttools - cmake configure
-        run: |
-          docker exec -u github:github -w /home/github/qttools-everywhere-src-${{ env.qt_version }} ${container_name} cmake -Wno-dev -Wno-deprecated -G Ninja -B build \
-          -D CMAKE_BUILD_TYPE="release" \
-          -D CMAKE_CXX_STANDARD="${{ env.cxx_standard }}" \
-          -D CMAKE_PREFIX_PATH="/home/github/build/${{ env.opt_dir_name }}" \
+        run: >
+          docker exec -u github:github -w /home/github/qttools-everywhere-src-${{ env.qt_version }} ${container_name} cmake -Wno-dev -Wno-deprecated -G Ninja -B build
+          -D CMAKE_BUILD_TYPE="release"
+          -D CMAKE_CXX_STANDARD="${{ env.cxx_standard }}"
+          -D CMAKE_PREFIX_PATH="/home/github/build/${{ env.opt_dir_name }}"
           -D CMAKE_INSTALL_PREFIX="/home/github/build/${{ env.opt_dir_name }}"
 
       - name: Docker target - qt qttools - cmake build
@@ -230,14 +236,16 @@ jobs:
         run: docker exec -u github:github ${container_name} git clone --single-branch --branch "${{ env.qbittorrent_branch }}" --shallow-submodules --recurse-submodules --depth 1 https://github.com/qbittorrent/qBittorrent.git /home/github/qbittorrent
 
       - name: Docker target - qbittorrent cmake configure
-        run: |
-          docker exec -u github:github -w /home/github/qbittorrent ${container_name} cmake -Wno-dev -Wno-deprecated -G Ninja -B build \
-          -D CMAKE_BUILD_TYPE="release" \
-          -D QT6="ON" \
-          -D CMAKE_CXX_STANDARD="${{ env.cxx_standard }}" \
-          -D CMAKE_PREFIX_PATH="/home/github/build/${{ env.opt_dir_name }}" \
-          -D BOOST_INCLUDEDIR="/home/github/${{ env.boost_include_dir }}" \
-          ${{ matrix.desktop_gui }} \
+        env:
+          boost_folder_name: ${{ steps.boost_info.outputs.BOOST_FOLDER_NAME }}
+        run: >
+          docker exec -u github:github -w /home/github/qbittorrent ${container_name} cmake -Wno-dev -Wno-deprecated -G Ninja -B build
+          -D CMAKE_BUILD_TYPE="release"
+          -D QT6="ON"
+          -D CMAKE_CXX_STANDARD="${{ env.cxx_standard }}"
+          -D CMAKE_PREFIX_PATH="/home/github/build/${{ env.opt_dir_name }}"
+          -D BOOST_INCLUDEDIR="/home/github/${boost_folder_name}"
+          ${{ matrix.desktop_gui }}
           -D CMAKE_INSTALL_PREFIX="/home/github/build/${{ env.opt_dir_name }}"
 
       - name: Docker target - qbittorrent cmake build
@@ -286,7 +294,7 @@ jobs:
           replacesArtifacts: true
           tag: "${{ env.qbittorrent_version }}_${{ env.libtorrent_version }}"
           name: "qBittorrent ${{ env.qbittorrent_version }} libtorrent ${{ env.libtorrent_version }}"
-          body: "qBittorrent and qBittorrent-nox built with cmake, qBittorrent github master, libtorrent RC_2_0, qt6 on amd64 arm64 armhf for Debian Bullseye Bookworm and Ubuntu Focal Jammy Noble"
+          body: "qBittorrent and qBittorrent-nox built with cmake, qBittorrent github master, libtorrent RC_2_0, qt6 on amd64 arm64 armhf for Debian Bookworm and Ubuntu Jammy Noble"
           allowUpdates: true
           token: "${{ secrets.GITHUB_TOKEN }}"
 
