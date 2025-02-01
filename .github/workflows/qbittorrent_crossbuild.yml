@@ -76,7 +76,7 @@ jobs:
       AR: "${{ matrix.CHOST }}-ar"
       CXX: "${{ matrix.CHOST }}-g++"
       opt_dir_name: "opt/local"
-      cxx_standard: "17"
+      cxx_standard: "20"
       prerelease: false
       container_name: "multiarch"
 
