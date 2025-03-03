@@ -244,7 +244,7 @@ jobs:
           -D CMAKE_BUILD_TYPE="release"
           -D QT6="ON"
           -D CMAKE_CXX_STANDARD="${{ env.cxx_standard }}"
-          -D CMAKE_PREFIX_PATH="/home/github/build/${{ env.opt_dir_name }}"
+          -D CMAKE_PREFIX_PATH="/home/github/build/${{ env.opt_dir_name }};/home/github/${boost_folder_name}"
           -D CMAKE_INSTALL_PREFIX="/home/github/build/${{ env.opt_dir_name }}"
           ${{ matrix.desktop_gui }}
 
