@@ -245,9 +245,8 @@ jobs:
           -D QT6="ON"
           -D CMAKE_CXX_STANDARD="${{ env.cxx_standard }}"
           -D CMAKE_PREFIX_PATH="/home/github/build/${{ env.opt_dir_name }}"
-          -D BOOST_INCLUDEDIR="/home/github/${boost_folder_name}"
-          ${{ matrix.desktop_gui }}
           -D CMAKE_INSTALL_PREFIX="/home/github/build/${{ env.opt_dir_name }}"
+          ${{ matrix.desktop_gui }}
 
       - name: Docker target - qbittorrent cmake build
         run: docker exec -u github:github -w /home/github/qbittorrent ${container_name} cmake --build build
