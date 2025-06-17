@@ -145,7 +145,7 @@ jobs:
 
       - name: Docker target - qt get latest release info and set to env
         run: |
-          qt_github_tag="$(git ls-remote -q -t --refs https://github.com/qt/qtbase.git | awk '/\/v6/{sub("refs/tags/", "");sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
+          qt_github_tag="v6.10.0-beta1"
           qt_version="${qt_github_tag/v/}"
           qt_short_version="${qt_version%.*}"
           printf '%s\n' "qt_version=${qt_version}" >> $GITHUB_ENV
@@ -229,11 +229,11 @@ jobs:
 
       - name: Docker target - qbittorrent set latest release as branch
         run: |
-          printf '%s\n' "qbittorrent_latest_version=$(git ls-remote -q -t --refs https://github.com/qbittorrent/qBittorrent.git | awk '{sub("refs/tags/", "");sub("(.*)(-[^0-9].*|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)" >> $GITHUB_ENV
+          printf '%s\n' "qbittorrent_latest_version=$(git ls-remote -q -t --refs https://github.com/userdocs/qBittorrent.git | awk '{sub("refs/tags/", "");sub("(.*)(-[^0-9].*|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)" >> $GITHUB_ENV
           printf '%s\n' "qbittorrent_branch=v5_0_x" >> $GITHUB_ENV
 
       - name: Docker target - qbittorrent - git clone
-        run: docker exec -u github:github ${container_name} git clone --single-branch --branch "${{ env.qbittorrent_branch }}" --shallow-submodules --recurse-submodules --depth 1 https://github.com/qbittorrent/qBittorrent.git /home/github/qbittorrent
+        run: docker exec -u github:github ${container_name} git clone --single-branch --branch "${{ env.qbittorrent_branch }}" --shallow-submodules --recurse-submodules --depth 1 https://github.com/userdocs/qBittorrent.git /home/github/qbittorrent
 
       - name: Docker target - qbittorrent cmake configure
         env:
