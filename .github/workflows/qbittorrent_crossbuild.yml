@@ -146,16 +146,19 @@ jobs:
       - name: Docker target - qt get latest release info and set to env
         run: |
           qt_github_tag="v6.10.0-beta1"
+          qt_release_type="development_releases"
+
           qt_version="${qt_github_tag/v/}"
           qt_short_version="${qt_version%.*}"
           printf '%s\n' "qt_version=${qt_version}" >> $GITHUB_ENV
           printf '%s\n' "qt_short_version=${qt_short_version}" >> $GITHUB_ENV
+          printf '%s\n' "qt_release_type=${qt_release_type}" >> $GITHUB_ENV
 
       - name: Docker target - qt set the download urls
         run: |
-          printf '%s\n' "qt_qtbase_url=https://download.qt.io/official_releases/qt/${{ env.qt_short_version }}/${{ env.qt_version }}/submodules/qtbase-everywhere-src-${{ env.qt_version }}.tar.xz" >> $GITHUB_ENV
-          printf '%s\n' "qt_qttools_url=https://download.qt.io/official_releases/qt/${{ env.qt_short_version }}/${{ env.qt_version }}/submodules/qttools-everywhere-src-${{ env.qt_version }}.tar.xz" >> $GITHUB_ENV
-          printf '%s\n' "qt_qtsvg_url=https://download.qt.io/official_releases/qt/${{ env.qt_short_version }}/${{ env.qt_version }}/submodules/qtsvg-everywhere-src-${{ env.qt_version }}.tar.xz" >> $GITHUB_ENV
+          printf '%s\n' "qt_qtbase_url=https://download.qt.io/${qt_release_type}/qt/${{ env.qt_short_version }}/${{ env.qt_version }}/submodules/qtbase-everywhere-src-${{ env.qt_version }}.tar.xz" >> $GITHUB_ENV
+          printf '%s\n' "qt_qttools_url=https://download.qt.io/${qt_release_type}/qt/${{ env.qt_short_version }}/${{ env.qt_version }}/submodules/qttools-everywhere-src-${{ env.qt_version }}.tar.xz" >> $GITHUB_ENV
+          printf '%s\n' "qt_qtsvg_url=https://download.qt.io/${qt_release_type}/qt/${{ env.qt_short_version }}/${{ env.qt_version }}/submodules/qtsvg-everywhere-src-${{ env.qt_version }}.tar.xz" >> $GITHUB_ENV
 
       - name: Docker target - qt qtbase - curl
         run: |
