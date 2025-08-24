@@ -82,7 +82,7 @@ jobs:
 
     steps:
       - name: Host - Checkout action
-        uses: actions/checkout@v4
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           persist-credentials: false
 
@@ -280,7 +280,7 @@ jobs:
           docker exec -w ${wd}/build/etc/ld.so.conf.d "${container_name}" bash -c "printf '%s\n' '/${opt_dir_name}/lib' > qbittorrent.conf"
 
       - name: Host - Create deb packages
-        uses: jiro4989/build-deb-action@v4
+        uses: jiro4989/build-deb-action@a883c65147d80579cb359548b9a902ff0a35ae5b # v4.3.0
         with:
           package: "${{ matrix.name }}"
           package_root: build
@@ -294,7 +294,7 @@ jobs:
         run: mv -f "${{ matrix.name }}_${qbittorrent_version}_${{ matrix.arch }}.deb" "${{ matrix.os_id }}-${{ matrix.os_version_id }}-${{ matrix.name }}-${{ matrix.arch }}.deb"
 
       - name: Host - "Create release - tag - assets"
-        uses: ncipollo/release-action@v1
+        uses: ncipollo/release-action@bcfe5470707e8832e12347755757cec0eb3c22af # v1.18.0
         with:
           prerelease: ${{ env.prerelease }}
           artifacts: "${{ matrix.os_id }}-${{ matrix.os_version_id }}-${{ matrix.name }}-${{ matrix.arch }}.deb"
@@ -322,7 +322,7 @@ jobs:
       retries: ${{ github.event.inputs.retries || '1' }}
       distinct_id: ${{ github.event.inputs.distinct_id }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           persist-credentials: false
       - name: ci-auto-rerun-failed-jobs via ${{ env.github_repo || github.repository }}
