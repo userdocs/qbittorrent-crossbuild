@@ -112,7 +112,13 @@ jobs:
           libx11-dev:${{ matrix.arch }} libx11-xcb-dev:${{ matrix.arch }} libxfixes-dev:${{ matrix.arch }} libxi-dev:${{ matrix.arch }}
           libxrender-dev:${{ matrix.arch }} libxkbcommon-dev:${{ matrix.arch }} libxcb*-dev:${{ matrix.arch }} libxkbcommon-x11-dev:${{ matrix.arch }}
           libxext-dev:${{ matrix.arch }} xmlstarlet:${{ matrix.arch }} libwayland-dev:${{ matrix.arch }}
-          libwayland-egl1-mesa:${{ matrix.arch }} libwayland-server0:${{ matrix.arch }} libgles2-mesa-dev:${{ matrix.arch }}
+          libwayland-server0:${{ matrix.arch }} libgles2-mesa-dev:${{ matrix.arch }}
+
+      - name: Docker target - apt-get install qt gui cross target deps
+        if: matrix.qt_features == '-D QT_FEATURE_gui=ON -D QT_FEATURE_widgets=ON -D QT_FEATURE_dbus=ON' && matrix.os_version_id != 'trixie'
+        run: >
+          docker exec -u 0:0 "${container_name}" apt-get install -y
+          libwayland-egl1-mesa:${{ matrix.arch }}
 
       - name: Docker - Bootstrap the boost files
         id: boost_info
@@ -153,7 +159,8 @@ jobs:
       - name: Docker target - qt get latest release info and set to env
         run: |
           qt_github_tag="$(git ls-remote -q -t --refs https://github.com/qt/qtbase.git | awk '/\/v6/{sub("refs/tags/", "");sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
-          qt_release_type="development_releases"
+          qt_release_type="official_releases"
+          # qt_release_type="development_releases"
 
           qt_version="${qt_github_tag/v/}"
           qt_short_version="${qt_version%.*}"
@@ -239,7 +246,7 @@ jobs:
 
       - name: Docker target - qbittorrent set latest release as branch
         run: |
-          printf '%s\n' "qbittorrent_latest_version=$(git ls-remote -q -t --refs https://github.com/userdocs/qBittorrent.git | awk '{sub("refs/tags/", "");sub("(.*)(-[^0-9].*|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)" >> $GITHUB_ENV
+          printf '%s\n' "qbittorrent_latest_version=$(git ls-remote -q -t --refs https://github.com/qbittorrent/qBittorrent.git | awk '{sub("refs/tags/", "");sub("(.*)(-[^0-9].*|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)" >> $GITHUB_ENV
           printf '%s\n' "qbittorrent_branch=master" >> $GITHUB_ENV
 
       - name: Docker target - qbittorrent - git clone
