@@ -250,7 +250,7 @@ jobs:
           printf '%s\n' "qbittorrent_branch=master" >> $GITHUB_ENV
 
       - name: Docker target - qbittorrent - git clone
-        run: docker exec "${container_name}" git clone --single-branch --branch "${qbittorrent_branch}" --shallow-submodules --recurse-submodules --depth 1 https://github.com/userdocs/qBittorrent.git "${wd}/qbittorrent"
+        run: docker exec "${container_name}" git clone --single-branch --branch "${qbittorrent_latest_version}" --shallow-submodules --recurse-submodules --depth 1 https://github.com/userdocs/qBittorrent.git "${wd}/qbittorrent"
 
       - name: Docker target - qbittorrent cmake configure
         env:
@@ -310,7 +310,7 @@ jobs:
           replacesArtifacts: true
           tag: "${{ env.qbittorrent_version }}_${{ env.libtorrent_version }}"
           name: "qBittorrent ${{ env.qbittorrent_version }} libtorrent ${{ env.libtorrent_version }}"
-          body: "qBittorrent and qBittorrent-nox built with cmake, qBittorrent github master, libtorrent RC_2_0, qt6 on amd64 arm64 armhf for Debian Bookworm and Ubuntu Jammy Noble"
+          body: "qBittorrent and qBittorrent-nox built with cmake, qBittorrent github master, libtorrent RC_2_0, qt6 on amd64 arm64 armhf for Debian Bookworm Trixie and Ubuntu Jammy Noble"
           allowUpdates: true
           token: "${{ secrets.GITHUB_TOKEN }}"
 
