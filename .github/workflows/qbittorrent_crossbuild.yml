@@ -245,12 +245,10 @@ jobs:
           docker exec -w ${wd} "${container_name}" tar xf dejavu-lgc-fonts-ttf-2.37.tar.bz2 --strip-components=2 -C ${wd}/build/${opt_dir_name}/lib/fonts dejavu-lgc-fonts-ttf-2.37/ttf
 
       - name: Docker target - qbittorrent set latest release as branch
-        run: |
-          # printf '%s\n' "qbittorrent_latest_version=$(git ls-remote -q -t --refs https://github.com/userdocs/qBittorrent.git | awk '{sub("refs/tags/", "");sub("(.*)(-[^0-9].*|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)" >> $GITHUB_ENV
-          printf '%s\n' "qbittorrent_latest_version=master" >> $GITHUB_ENV
+        run: printf '%s\n' "qbittorrent_latest_version=$(git ls-remote -q -t --refs https://github.com/userdocs/qBittorrent.git | awk '{sub("refs/tags/", "");sub("(.*)(-[^0-9].*|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)" >> $GITHUB_ENV
 
       - name: Docker target - qbittorrent - git clone
-        run: docker exec "${container_name}" git clone --single-branch --branch "${qbittorrent_latest_version}" --shallow-submodules --recurse-submodules --depth 1 https://github.com/userdocs/qBittorrent.git "${wd}/qbittorrent"
+        run: docker exec "${container_name}" git clone --single-branch --branch "master" --shallow-submodules --recurse-submodules --depth 1 https://github.com/userdocs/qBittorrent.git "${wd}/qbittorrent"
 
       - name: Docker target - qbittorrent cmake configure
         env:
