@@ -301,7 +301,7 @@ jobs:
         run: mv -f "${{ matrix.name }}_${qbittorrent_version}_${{ matrix.arch }}.deb" "${{ matrix.os_id }}-${{ matrix.os_version_id }}-${{ matrix.name }}-${{ matrix.arch }}.deb"
 
       - name: Host - "Create release - tag - assets"
-        uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b # v1.20.0
+        uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1.21.0
         with:
           prerelease: ${{ env.prerelease }}
           artifacts: "${{ matrix.os_id }}-${{ matrix.os_version_id }}-${{ matrix.name }}-${{ matrix.arch }}.deb"
